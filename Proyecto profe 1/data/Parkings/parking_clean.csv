@@ -1,0 +1,94 @@
+id;name;address;areaCode;email;URLIcono;long;lat;state;town;isEmtParking;Plazas_standard;Plazas_PMR
+2;Colón;Plaza de Colón s/n;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6899392;40.4247093;Spain;Madrid;N;1047;21
+3;Corazón de María II;C/ Corazón de María (final calle);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6455254;40.4385248;Spain;Madrid;N;327;0
+4;Encuentro;Plaza Encuentro;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6513541;40.4054645;Spain;Madrid;N;104;0
+5;Nuestra Señora del Recuerdo;c/ Hiedra, 26;28036.0;recuerdo@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_elec_p.png;-3.67916;40.472181;España;Madrid;Y;902;12
+6;Corona Boreal;Plaza Corona Boreal y C/ Marqués Camarines;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7832;40.4568;Spain;Madrid;N;120;0
+7;Avenida de Portugal;Avda. de Portugal, s/n. Frente al nº 51;28011.0;avenida.de.portugal@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_elec_p.png;-3.727515;40.415415;España;Madrid;Y;435;14
+8;Plaza del Carmen;Plaza del Carmen;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7034468;40.4185861;Spain;Madrid;N;434;8
+9;Paseo de Recoletos;Paseo de Recoletos, 4;28001.0;recoletos@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.692164729674;40.420692539318;España;Madrid;Y;281;8
+10;Condesa de Gavia;Plaza Condesa de Gavia;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7019123;40.4490039;Spain;Madrid;N;73;0
+12;Almagro;c/ Almagro, 11;28010.0;almagro@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.69295;40.43039;España;Madrid;Y;453;12
+14;Luna-Tudescos;P. Sta Mª Soledad Torres Acosta c/v c/Luna);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7049889;40.4215407;Spain;Madrid;N;0;0
+15;Jacinto Benavente;Plaza Jacinto Benavente, s/n;28012.0;jacinto.benavente@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.703448;40.414267;España;Madrid;Y;394;4
+16;América;Avda. América (intercambiador);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.67669;40.4380932;Spain;Madrid;N;269;0
+17;Arquitecto Ribera (Barceló);C/ Barceló, 2;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.700464;40.426411;Spain;Madrid;N;317;7
+18;Brasil;Avda. Brasil (entre General Yagüe y Pedro Texeira);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.69374;40.45615;Spain;Madrid;N;226;0
+19;Casino de la Reina;C/ Casino;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7054501;40.4066596;Spain;Madrid;N;131;0
+20;Descalzas;Plaza Descalzas y Plaza San Martín;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.707072;40.418441;Spain;Madrid;N;0;8
+21;Palacio Municipal de Congresos;Avda. Capital de España, s/n;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6160214;40.46190431;Spain;Madrid;N;600;0
+22;Orense;Avda. General Perón, 27;28020.0;orense@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_elec_p.png;-3.694009;40.453019;España;Madrid;Y;144;4
+23;Daoíz y Velarde;Avda. Ciudad de Barcelona ( C/ Alberche y C/ Téllez);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6784287;40.4030883;Spain;Madrid;N;174;0
+25;Marqués de Salamanca;Plaza Marques de Salamanca, s/n;28006.0;salamanca@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_elec_p.png;-3.679197;40.430293;España;Madrid;Y;361;8
+26;Felipe II;Avda. Felipe II y C/ Goya);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.67567;40.424015;Spain;Madrid;N;1218;0
+27;Fuencarral;C/ Fuencarral, 111 (entre 111 Y 121);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.702573;40.4294714;España;Madrid;Y;307;7
+28;General Yagüe;Avda. Brasil, 15 Nº15 al 19;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6939585;40.4543339;Spain;Madrid;N;409;0
+29;Hernani;C/ Hernani (entre C/ Orense y Comandante Zorita);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6999184;40.4482467;Spain;Madrid;N;115;0
+30;José Castán Tobeñas;C/ José Castán Tobeñas;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.69225;40.46473;Spain;Madrid;N;205;0
+31;Miguel Yuste;C/ Miguel Yuste s/n;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.62371;40.43733;Spain;Madrid;N;182;0
+32;Plaza de Oriente;Plaza de Oriente, 1;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.71305556;40.42;Spain;Madrid;N;212;4
+33;Presidente Carmona;Avda. Presidente Carmona;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.697261;40.4541445;Spain;Madrid;N;124;0
+35;Reyes Magos;Plaza Reyes Magos;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6759568;40.4089554;Spain;Madrid;N;345;0
+36;San Cayetano;Plaza San Cayetano;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.670343;40.434403;Spain;Madrid;N;222;0
+37;Sánchez Bustillo;C/ Sánchez Bustillo;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6933423;40.4088597;Spain;Madrid;N;132;6
+39;Serrano II;C/ Serrano entre Ortega y Gasset y Hermosilla;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.68715;40.42865;Spain;Madrid;N;307;0
+40;Serrano III;C/ Serrano entre Jorge Juan y Pza. Independencia;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6884056;40.4197583;Spain;Madrid;N;261;0
+41;Sevilla;C/ Sevilla y C/ Alcalá;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6992503;40.418054;Spain;Madrid;N;391;0
+42;Velázquez Ayala;C/ Velázquez ( y C/ Ayala);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.68379;40.42761;Spain;Madrid;N;464;0
+43;Velázquez Jorge Juan;C/ Velázquez ( y C/ Jorge Juan);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6771486;40.4234377;Spain;Madrid;N;549;0
+44;Verdaguer y García;C/ Verdaguer y García;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6546779;40.4403579;Spain;Madrid;N;83;0
+45;Auditorio;C/ Príncipe de Vergara (Junto Auditorio);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6801218;40.4229427;Spain;Madrid;N;376;0
+46;Cortes;Plaza de las Cortes;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6958823;40.4156855;Spain;Madrid;N;942;0
+47;Fernández Shaw;C/ Carlos y Guillermo Fernández Shaw;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.668314;40.4043224;Spain;Madrid;N;245;0
+49;Montalbán;C/ Montalbán (entre C/ Alfonso XI y Pº Prado);28014.0;montalban@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.690707;40.418161;España;Madrid;Y;294;4
+50;Mostenses;Plaza Mostenses y C/ Ricardo León;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7089974;40.4235602;Spain;Madrid;N;357;0
+51;Museo de la ciudad;C/ Príncipe de Vergara, 152 ( y C/ Pechuán );;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6779271;40.4474968;Spain;Madrid;N;147;0
+52;Olavide;Plaza de Olavide;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7010275;40.4326973;España;Madrid;Y;383;13
+53;Plaza de España;Plaza de España;28008.0;plaza.de.espana@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.711583;40.423636;España;Madrid;Y;808;29
+54;Plaza del Rey;Plaza del Rey ( y C/ Barquillo C/V C/ Infantas);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6963131;40.4200305;Spain;Madrid;N;147;3
+55;Plaza Mayor;Plaza Mayor;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7066676;40.4152721;España;Madrid;Y;699;22
+57;San Epifanio;C/ San Epifanio, 7;28005.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_elec_p.png;-3.718745;40.401317;España;Madrid;Y;501;12
+58;Velázquez Juan Bravo;C/ Velázquez ( y C/ Juán Bravo);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6834;40.4321;Spain;Madrid;N;371;0
+60;Díaz Porlier;C/Diego de León,64(Príncipe de Vergara-Cde. Peñalver);;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.675167;40.4345198;Spain;Madrid;N;203;0
+61;República Dominicana;Pza Rep Dominicana C/Costa Rica y C/Alberto Alcocer;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.67647;40.45869;Spain;Madrid;N;203;0
+62;Serrano I;C/Serrano entre Hnos. Becquer y Marq. de Villamejor;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6872468;40.4359971;Spain;Madrid;N;307;0
+63;Marqués de Urquijo;Marq de Urquijo(entre C/Princesa y J. Álv. Mendiz.;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7188502;40.4298028;Spain;Madrid;N;435;0
+64;Puerta Toledo;Glorieta Puerta Toledo C/V Cptan. Salazar Martínez;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.7110512;40.407036;Spain;Madrid;N;244;0
+67;Villa de París;Plaza Villa de París;28004.0;villa.de.paris@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.692336;40.4251;España;Madrid;Y;179;4
+69;Barceló;C/ Barceló, s/n;;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.700366;40.426438;España;Madrid;Y;554;0
+71;Pedro Zerolo;Plaza Pedro Zerolo, s/n;28004.0;pedro.zerolo@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.699282;40.420653;España;Madrid;Y;115;3
+73;Agustín Lara;Plaza Arturo Barea;28012.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.703414;40.408628;España;Madrid;Y;52;0
+74;Fuente de la Mora;Av. de Manoteras, 1D;28050.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.663501;40.484395;España;Madrid;Y;414;12
+75;GARAJE AMPARO;CALLE AMPARO;28012.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.701445;40.407933;ESPAÑA;MADRID;N;68;0
+76;Pitis;Calle Gloria Fuertes, 191;28035.0;aparcamientos@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.723984502;40.496558;España;Madrid;Y;461;10
+77;PLAZA DE SANTA ANA;PZA. DE SANTA ANA;28014.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.700645;40.414533;ESPAÑA;MADRID;N;328;6
+78;Islazul;Calle Calderilla, 1;28054.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.738932785;40.364416188;España;Madrid;Y;224;0
+79;Aviación Española;Calle Fuente de Lima, 2;28024.0;aparcamientos@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.783541162;40.383721163;España;Madrid;Y;359;9
+80;Wanda Metropolitano;Avda. Arcentales, 39;28022.0;aparcamientos@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.60067257;40.4335587;España;Madrid;Y;3027;0
+81;Paseo Artilleros 360;San Cipriano, 3;28032.0;aparcamientos@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.6091345;40.4046325;España;Madrid;Y;148;4
+82;Altamiras;"C/ Fco Altimiras, 4
+";;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.663694;40.433787;España;Madrid;Y;59;0
+84;Elvira;C/ Elvira, 42;28028.0;aparcamientos@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.665728;40.420947;España;Madrid;Y;190;0
+85;Ginzo de Limia;"C/ Ginzo de Limia, 66
+";;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.707068;40.484704;España;Madrid;Y;97;0
+86;La Latina;Calle de Toledo;28005.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.710914;40.408782;España;Madrid;N;160;0
+87;Pradillo II;"C/ Pradillo, 31
+";;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.671122;40.449119;España;Madrid;Y;64;0
+88;BARCO 1;Calle Barco;28004.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.702918;40.421107;ESPAÑA;MADRID;N;50;0
+89;GRAVINA 21;Calle Gravina;28004.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.696436;40.422704;ESPAÑA;MADRID;N;25;0
+90;Samaranch;"C/ Paseo Imperial, 18
+";;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.718239;40.408244;España;Madrid;Y;233;0
+91;Aparcamiento Escuelas de San Anton;SANTA BRIGIDA ;28004.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.699445;40.424419;ESPAÑA;MADRID;N;0;6
+94;MERCADO SAN ANTON;LIBERTAD;28004.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.697468;40.421693;ESPAÑA;MADRID;N;100;0
+95;Colón;"Plaza de Colón, s/n
+";;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.689574;40.424419;España;Madrid;Y;4;0
+96;GARAJE PIAMONTE;PIAMONTE;28004.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.694675;40.42305;ESPAÑA;MADRID;N;95;0
+97;PARKING VOT;Ventosa;28005.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.714779;40.408671;ESPAÑA;MADRID;N;90;3
+98;ISABEL LA CATOLICA;Calle de Isabel la Católica;28007.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.709122;40.421829;ESPAÑA;MADRID;N;137;0
+99;Museo de la ciudad;"c/ Cartagena 178
+";;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.677665;40.444212;España;Madrid;Y;146;0
+101;SANTO DOMINGO;Plaza de Santo Domingo;28013.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.77087154;40.4197986;Spain;Madrid;N;333;0
+104;Velázquez-JuanBravo;;;aparcamientos@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.465464;40.465465;España;Madrid;Y;0;5
+105;Arquitecto Ribera;;;aparcamientos@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.465464;40.465465;España;Madrid;Y;0;5
+501;Mercado de la Cebada;Plaza de la Cebada s/n;28005.0;;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.709082;40.41049;Spain;Madrid;N;206;0
+1239;Hub de Movilidad Canalejas 360;Calle de Alcalá, 17;28014.0;aparcamientos@emtmadrid.es;https://servicios.emtmadrid.es:8443/InfoParking/iconos/IconosCuadradosPico/aparcamiento_p.png;-3.699137;40.417901;España;Madrid;Y;30;0
