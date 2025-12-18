@@ -11,12 +11,12 @@
     <parameters>
       <parameter>
         <name>Data_Path</name>
-        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/Proyecto/data</default_value>
+        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/PRVD/Proyecto profe 1/data</default_value>
         <description>Ruta a la carpeta data del proyecto</description>
       </parameter>
       <parameter>
         <name>Output_Path</name>
-        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/Proyecto/resultados</default_value>
+        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/PRVD/Proyecto profe 1/resultados</default_value>
         <description>Ruta de salida para datos procesados</description>
       </parameter>
     </parameters>
@@ -262,12 +262,77 @@ para análisis multimodal.
       <to>Agregar campo transport_mode Parkings</to>
       <enabled>Y</enabled>
     </hop>
+    <hop>
+      <from>Agregar campo transport_mode Autobuses</from>
+      <to>Seleccionar campos bus</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Agregar campo transport_mode Metro</from>
+      <to>Seleccionar campos metro</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Seleccionar campos metro</from>
+      <to>Juntar metro con bus</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Seleccionar campos bus</from>
+      <to>Juntar metro con bus</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Agregar campo transport_mode BiciMAD</from>
+      <to>Seleccionar campos BiciMAD 2</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Seleccionar campos BiciMAD 2</from>
+      <to>Juntar metro y bus con biciMAD</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Agregar campo transport_mode Parkings</from>
+      <to>Seleccionar campos parkings 2</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Seleccionar campos parkings 2</from>
+      <to>Juntar metro, bus y biciMAD con parkings</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Juntar metro, bus y biciMAD con parkings</from>
+      <to>Guardar dataset consolidado</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Juntar metro con bus</from>
+      <to>Formatear campos</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Formatear campos</from>
+      <to>Juntar metro y bus con biciMAD</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Juntar metro y bus con biciMAD</from>
+      <to>Formatear campos 2</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Formatear campos 2</from>
+      <to>Juntar metro, bus y biciMAD con parkings</to>
+      <enabled>Y</enabled>
+    </hop>
   </order>
   <transform>
     <name>Agregar campo transport_mode Autobuses</name>
     <type>Constant</type>
     <description/>
-    <distribute>Y</distribute>
+    <distribute>N</distribute>
     <custom_distribution/>
     <copies>1</copies>
     <partitioning>
@@ -294,7 +359,7 @@ para análisis multimodal.
     <name>Agregar campo transport_mode BiciMAD</name>
     <type>Constant</type>
     <description/>
-    <distribute>Y</distribute>
+    <distribute>N</distribute>
     <custom_distribution/>
     <copies>1</copies>
     <partitioning>
@@ -321,7 +386,7 @@ para análisis multimodal.
     <name>Agregar campo transport_mode Metro</name>
     <type>Constant</type>
     <description/>
-    <distribute>Y</distribute>
+    <distribute>N</distribute>
     <custom_distribution/>
     <copies>1</copies>
     <partitioning>
@@ -348,7 +413,7 @@ para análisis multimodal.
     <name>Agregar campo transport_mode Parkings</name>
     <type>Constant</type>
     <description/>
-    <distribute>Y</distribute>
+    <distribute>N</distribute>
     <custom_distribution/>
     <copies>1</copies>
     <partitioning>
@@ -1243,6 +1308,206 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+    <name>Formatear campos</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <length>-2</length>
+        <name>stop_name</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lat</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lon</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_id</name>
+        <precision>-2</precision>
+      </field>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_name</name>
+        <precision>-2</precision>
+        <rename>stop_name</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>15</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_lat</name>
+        <precision>1</precision>
+        <rename>stop_lat</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>Number</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>15</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_lon</name>
+        <precision>1</precision>
+        <rename>stop_lon</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>Number</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+        <rename>transport_mode</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_id</name>
+        <precision>-2</precision>
+        <rename>stop_id</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1936</xloc>
+      <yloc>672</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Formatear campos 2</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <length>-2</length>
+        <name>stop_name</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lat</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lon</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_id</name>
+        <precision>-2</precision>
+      </field>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_name</name>
+        <precision>-2</precision>
+        <rename>stop_name</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>15</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_lat</name>
+        <precision>1</precision>
+        <rename>stop_lat</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>Number</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>15</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_lon</name>
+        <precision>1</precision>
+        <rename>stop_lon</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>Number</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+        <rename>transport_mode</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_id</name>
+        <precision>-2</precision>
+        <rename>stop_id</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1936</xloc>
+      <yloc>976</yloc>
+    </GUI>
+  </transform>
+  <transform>
     <name>Formula</name>
     <type>Formula</type>
     <description/>
@@ -1487,7 +1752,7 @@ para análisis multimodal.
     <enclosure_fix_disabled>Y</enclosure_fix_disabled>
     <header>Y</header>
     <footer>N</footer>
-    <format/>
+    <format>DOS</format>
     <compression>None</compression>
     <encoding>UTF-8</encoding>
     <endedLine/>
@@ -1512,11 +1777,133 @@ para análisis multimodal.
       <splitevery/>
     </file>
     <fields>
+      <field>
+        <name>stop_name</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>none</trim_type>
+        <roundingType>half_even</roundingType>
+        <length>200</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>stop_lat</name>
+        <type>Number</type>
+        <format>#.#####</format>
+        <currency>$</currency>
+        <decimal>.</decimal>
+        <group>,</group>
+        <nullif/>
+        <trim_type>none</trim_type>
+        <roundingType>half_even</roundingType>
+        <length>15</length>
+        <precision>1</precision>
+      </field>
+      <field>
+        <name>stop_lon</name>
+        <type>Number</type>
+        <format>#.#####</format>
+        <currency>$</currency>
+        <decimal>.</decimal>
+        <group>,</group>
+        <nullif/>
+        <trim_type>none</trim_type>
+        <roundingType>half_even</roundingType>
+        <length>15</length>
+        <precision>1</precision>
+      </field>
+      <field>
+        <name>transport_mode</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>none</trim_type>
+        <roundingType>half_even</roundingType>
+        <length>200</length>
+        <precision>-1</precision>
+      </field>
+      <field>
+        <name>stop_id</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>none</trim_type>
+        <roundingType>half_even</roundingType>
+        <length>200</length>
+        <precision>-1</precision>
+      </field>
     </fields>
     <attributes/>
     <GUI>
-      <xloc>2080</xloc>
-      <yloc>528</yloc>
+      <xloc>2240</xloc>
+      <yloc>1088</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Juntar metro con bus</name>
+    <type>Append</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <head_name>Seleccionar campos metro</head_name>
+    <tail_name>Seleccionar campos bus</tail_name>
+    <attributes/>
+    <GUI>
+      <xloc>1936</xloc>
+      <yloc>480</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Juntar metro y bus con biciMAD</name>
+    <type>Append</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <head_name>Formatear campos</head_name>
+    <tail_name>Seleccionar campos BiciMAD 2</tail_name>
+    <attributes/>
+    <GUI>
+      <xloc>1936</xloc>
+      <yloc>848</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Juntar metro, bus y biciMAD con parkings</name>
+    <type>Append</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <head_name>Formatear campos 2</head_name>
+    <tail_name>Seleccionar campos parkings 2</tail_name>
+    <attributes/>
+    <GUI>
+      <xloc>1936</xloc>
+      <yloc>1088</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1671,6 +2058,106 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+    <name>Seleccionar campos BiciMAD 2</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <length>-2</length>
+        <name>station_name</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lat</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lon</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>station_id</name>
+        <precision>-2</precision>
+      </field>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>station_name</name>
+        <precision>-2</precision>
+        <rename>stop_name</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>15</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_lat</name>
+        <precision>1</precision>
+        <rename>stop_lat</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>Number</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>15</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_lon</name>
+        <precision>1</precision>
+        <rename>stop_lon</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>Number</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+        <rename>transport_mode</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>station_id</name>
+        <precision>-2</precision>
+        <rename>stop_id</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1680</xloc>
+      <yloc>848</yloc>
+    </GUI>
+  </transform>
+  <transform>
     <name>Seleccionar campos Parkings</name>
     <type>SelectValues</type>
     <description/>
@@ -1724,6 +2211,196 @@ para análisis multimodal.
     <GUI>
       <xloc>320</xloc>
       <yloc>976</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Seleccionar campos bus</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <length>-2</length>
+        <name>stop_name</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lat</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lon</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_id</name>
+        <precision>-2</precision>
+      </field>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1424</xloc>
+      <yloc>592</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Seleccionar campos metro</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <length>-2</length>
+        <name>stop_name</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lat</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lon</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_id</name>
+        <precision>-2</precision>
+      </field>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1168</xloc>
+      <yloc>336</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Seleccionar campos parkings 2</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <length>-2</length>
+        <name>parking_name</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lat</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>stop_lon</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+      </field>
+      <field>
+        <length>-2</length>
+        <name>parking_id</name>
+        <precision>-2</precision>
+      </field>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>parking_name</name>
+        <precision>-2</precision>
+        <rename>stop_name</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>15</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_lat</name>
+        <precision>1</precision>
+        <rename>stop_lat</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>Number</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>15</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>stop_lon</name>
+        <precision>1</precision>
+        <rename>stop_lon</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>Number</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>transport_mode</name>
+        <precision>-2</precision>
+        <rename>transport_mode</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <meta>
+        <date_format_lenient>N</date_format_lenient>
+        <length>200</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>parking_id</name>
+        <precision>-2</precision>
+        <rename>stop_id</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type>normal</storage_type>
+        <type>String</type>
+      </meta>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1248</xloc>
+      <yloc>1088</yloc>
     </GUI>
   </transform>
   <transform>
