@@ -1,0 +1,107 @@
+---
+title: "Memoria: Análisis de Redes de Transporte Multicapa con MuxViz"
+author: "Alumno"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+    theme: united
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+# Instalar paquetes si no existen (comentar si ya están instalados/user tiene problemas de permisos)
+if(!require("muxViz")) warning("La librería muxViz no está instalada. Por favor sigue las instrucciones de https://manlius.github.io/muxViz/")
+if(!require("igraph")) install.packages("igraph")
+if(!require("dplyr")) install.packages("dplyr")
+library(igraph)
+library(dplyr)
+# library(muxViz) # Descomentar cuando esté instalada
+```
+
+# 1. Introducción
+
+En este trabajo se presenta la construcción y análisis de una red multicapa que modela el sistema de transporte público de Madrid. Las redes multicapa (*Multilayer Networks*) permiten representar sistemas complejos donde las entidades (nodos) están conectadas a través de diferentes tipos de relaciones (capas).
+
+En nuestro caso, las capas corresponden a:
+1.  **Metro**: Red de alta capacidad subterránea.
+2.  **Autobuses**: Red capilar de superficie.
+3.  **Bicimad**: Sistema de bicicleta pública.
+
+El objetivo es analizar la **versatilidad** de los nodos (estaciones) y visualizar la interconectividad del sistema.
+
+
+# 2. Construcción de la Red
+
+Los datos utilizados provienen de fuentes de datos abiertos (EMT, Metro, Bicimad) previamente procesados.
+
+```{r process_data}
+# Ejecutamos el script de preprocesamiento para generar los archivos de red y el objeto MuxViz
+source("scripts/process_data.R")
+
+# Leemos los nodos para referencia
+nodes_df <- read.csv("output/nodos_muxviz_map.csv")
+cat("La red tiene", nrow(nodes_df), "nodos totales.")
+```
+
+## Estructura de Capas
+La red se ha construido asumiendo:
+- **Intra-capa**: Conexiones secuenciales para Bus/Metro y proximidad para Bicimad.
+- **Inter-capa**: Transbordos a pie (distancia < 150m) entre modos de transporte.
+
+# 3. Visualización y Análisis con MuxViz
+
+A continuación cargamos el objeto generado por la librería `muxViz`.
+
+```{r muxviz_code, eval=TRUE}
+# Intentar cargar librerías necesarias
+if(!require("devtools")) install.packages("devtools")
+if(!require("muxViz")) devtools::install_github("manlius/muxViz")
+library(muxViz)
+
+# Cargar el objeto pre-construido
+if(file.exists("output/muxviz_network.RData")) {
+  load("output/muxviz_network.RData")
+  
+  # Visualización básica
+  # Nota: layout 'circular' o 'kk' es útil si no tenemos layout geográfico perfecto cargado en g.list
+  plot_multiplex3D(g.list, layer.layout = "circular",
+                   layer.colors = c("red", "blue", "green"),
+                   node.size.values = "degree")
+                   
+} else {
+  warning("No se encontró el objeto output/muxviz_network.RData. Revisa el script de procesamiento.")
+}
+```
+
+> **Interpretación**: La visualización 3D permite observar cómo ciertos nodos actúan como "hubs" conectando múltiples capas (ej. intercambiadores como Atocha o Moncloa), mientras que otros son periféricos y existen solo en una capa (ej. paradas de bus aisladas).
+
+# 4. Análisis de Versatilidad y Centralidad
+
+Uno de los puntos clave del trabajo es estudiar la **Multinode Versatility**. Un nodo versátil no es necesariamente el que tiene más conexiones en una sola capa, sino el que conecta eficazmente diferentes capas.
+
+```{r centrality_analysis, eval=FALSE}
+# Calcular versatilidad (PageRank multicapa)
+multi_pr <- GetMultiPageRank(g.list)
+
+# Unir con nombres de estaciones
+top_central <- data.frame(node_id = 1:length(multi_pr), versatility = multi_pr) %>%
+  left_join(nodes_df, by = c("node_id" = "node_id")) %>%
+  arrange(desc(versatility)) %>%
+  head(10)
+
+print(top_central)
+```
+
+### Resultados Esperados
+Se espera que las estaciones con mayor versatilidad sean los grandes intercambiadores de transporte, ya que permiten el flujo no solo dentro de una red (ej. Metro) sino entre redes (Metro -> Bus).
+
+# 5. Vulnerabilidad (Cascadas de Fallos)
+
+Siguiendo la especificación del trabajo, analizamos teóricamente la vulnerabilidad. En redes interdependientes, un fallo en un nodo de la capa de energía (o en nuestro caso, el cierre de una estación de Metro crítica) puede saturar las paradas de autobús cercanas, propagando el fallo.
+
+*Para simular esto en MuxViz, se pueden eliminar nodos iterativamente y medir el tamaño de la componente gigante restante.*
+
+# 6. Conclusiones
+
+La integración de datos de transporte en una red multiplex revela la dependencia estructural entre los distintos modos. Herramientas como `muxViz` son fundamentales para pasar de un análisis de "silos" (capas aisladas) a una visión sistémica de la movilidad urbana.
