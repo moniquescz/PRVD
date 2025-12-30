@@ -1,0 +1,3 @@
+C:/Users/Eric/Desktop/Master/PRVD/Practicas/Practica_Final/PRVD/Proyecto profe 2/output/metro.edges;Metro;C:/Users/Eric/Desktop/Master/PRVD/Practicas/Practica_Final/PRVD/Proyecto profe 2/output/layout.txt
+C:/Users/Eric/Desktop/Master/PRVD/Practicas/Practica_Final/PRVD/Proyecto profe 2/output/bus.edges;Bus;C:/Users/Eric/Desktop/Master/PRVD/Practicas/Practica_Final/PRVD/Proyecto profe 2/output/layout.txt
+C:/Users/Eric/Desktop/Master/PRVD/Practicas/Practica_Final/PRVD/Proyecto profe 2/output/bici.edges;Bicimad;C:/Users/Eric/Desktop/Master/PRVD/Practicas/Practica_Final/PRVD/Proyecto profe 2/output/layout.txt
