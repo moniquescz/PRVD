@@ -11,12 +11,12 @@
     <parameters>
       <parameter>
         <name>RUTA_DATOS</name>
-        <default_value>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\data\DATOS_OPEN_DATA\Extraidos</default_value>
+        <default_value>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data\DATOS_OPEN_DATA\Extraidos</default_value>
         <description/>
       </parameter>
       <parameter>
         <name>RUTA_TODOS_DATOS</name>
-        <default_value>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\data\DATOS_OPEN_DATA\</default_value>
+        <default_value>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data\DATOS_OPEN_DATA</default_value>
         <description/>
       </parameter>
     </parameters>
@@ -107,11 +107,6 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Group by</from>
-      <to>Guardar dataset</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>Replace in string</from>
       <to>Sort rows</to>
       <enabled>Y</enabled>
@@ -129,6 +124,16 @@
     <hop>
       <from>Filter rows</from>
       <to>juntar distritos</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Group by</from>
+      <to>Modificar el nombre del distrito</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Modificar el nombre del distrito</from>
+      <to>Guardar dataset</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -592,7 +597,7 @@
     <fileNameField/>
     <create_parent_folder>Y</create_parent_folder>
     <file>
-      <name>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\data\viajes_madrid</name>
+      <name>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data\viajes_madrid</name>
       <servlet_output>N</servlet_output>
       <do_not_open_new_file_init>N</do_not_open_new_file_init>
       <extention>csv</extention>
@@ -742,8 +747,70 @@
     </fields>
     <attributes/>
     <GUI>
-      <xloc>1120</xloc>
-      <yloc>864</yloc>
+      <xloc>1280</xloc>
+      <yloc>848</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Modificar el nombre del distrito</name>
+    <type>ScriptValueMod</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <optimizationLevel>9</optimizationLevel>
+    <jsScripts>
+      <jsScript>
+        <jsScript_type>0</jsScript_type>
+        <jsScript_name>Script 1</jsScript_name>
+        <jsScript_script>//Script here
+
+// 1. Mapa de distritos corregido
+var distrito_map = {
+    "01": "Centro", "02": "Arganzuela", "03": "Retiro", "04": "Salamanca",
+    "05": "Chamartin", "06": "Tetuan", "07": "Chamberi", "08": "Fuencarral-El Pardo",
+    "09": "Moncloa-Aravaca", "10": "Latina", "11": "Carabanchel", "12": "Usera",
+    "13": "Puente de Vallecas", "14": "Moratalaz", "15": "Ciudad Lineal", "16": "Hortaleza",
+    "17": "Villaverde", "18": "Villa de Vallecas", "19": "Vicalvaro", "20": "San Blas",
+    "21": "Barajas"
+};
+
+// 2. Obtener el código limpio de "zona_pernoctacion" (ej. "2807901")
+var zona_str = "";
+var nuevo_nombre = name; // Por defecto dejamos el que ya existía por seguridad
+
+if (zona_pernoctacion != null) {
+    zona_str = zona_pernoctacion.toString().trim();
+    
+    // Cogemos siempre los últimos 2 caracteres con slice(-2)
+    // Esto convierte "2807901" en "01" y "2807921" en "21"
+    var codigo_limpio = zona_str.slice(-2);
+    
+    // 3. Buscamos en el mapa
+    if (distrito_map[codigo_limpio] != undefined) {
+        nuevo_nombre = distrito_map[codigo_limpio];
+    }
+}</jsScript_script>
+      </jsScript>
+    </jsScripts>
+    <fields>
+      <field>
+        <name>nuevo_nombre</name>
+        <rename>name</rename>
+        <type>String</type>
+        <length>50</length>
+        <precision>-1</precision>
+        <replace>Y</replace>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1136</xloc>
+      <yloc>912</yloc>
     </GUI>
   </transform>
   <transform>
