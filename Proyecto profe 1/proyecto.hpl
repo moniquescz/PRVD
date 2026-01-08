@@ -21,11 +21,7 @@
       </parameter>
       <parameter>
         <name>RUTA_TODOS_DATOS</name>
-<<<<<<< HEAD
-        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/PRVD/Proyecto profe 1/data</default_value>
-=======
         <default_value>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data\DATOS_OPEN_DATA</default_value>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
         <description/>
       </parameter>
     </parameters>
@@ -727,11 +723,7 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>CSV poblacion</name>
-=======
     <name>CSV poblacion 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>CSVInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -803,13 +795,8 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>96</xloc>
-      <yloc>1312</yloc>
-=======
       <xloc>128</xloc>
       <yloc>1424</yloc>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -1310,11 +1297,7 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>Eliminar duplicados</name>
-=======
     <name>Eliminar duplicados 3</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SelectValues</type>
     <description/>
     <distribute>Y</distribute>
@@ -1349,13 +1332,8 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>640</xloc>
-      <yloc>1248</yloc>
-=======
       <xloc>720</xloc>
       <yloc>1360</yloc>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -1396,11 +1374,7 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>Estadísticas Viajes</name>
-=======
     <name>Estadísticas Viajes 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>TextFileInput2</type>
     <description/>
     <distribute>Y</distribute>
@@ -1569,21 +1543,12 @@ para análisis multimodal.
     <sizeFieldName/>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>96</xloc>
-      <yloc>1520</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Filter rows</name>
-=======
       <xloc>128</xloc>
       <yloc>1632</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Filter rows 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>FilterRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -1613,13 +1578,8 @@ para análisis multimodal.
     </compare>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>640</xloc>
-      <yloc>1424</yloc>
-=======
       <xloc>672</xloc>
       <yloc>1536</yloc>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -1784,11 +1744,7 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>Filtrar por Madrid</name>
-=======
     <name>Filtrar por Madrid 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>FilterRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -1819,13 +1775,8 @@ para análisis multimodal.
     <send_true_to>Ordenar Ascendente</send_true_to>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>224</xloc>
-      <yloc>1200</yloc>
-=======
       <xloc>256</xloc>
       <yloc>1312</yloc>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -2056,11 +2007,7 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>Group by</name>
-=======
     <name>Group by 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>GroupBy</type>
     <description/>
     <distribute>Y</distribute>
@@ -2127,13 +2074,8 @@ para análisis multimodal.
     <prefix>grp</prefix>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>944</xloc>
-      <yloc>1776</yloc>
-=======
       <xloc>976</xloc>
       <yloc>1888</yloc>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -2337,11 +2279,7 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>Guardar dataset</name>
-=======
     <name>Guardar dataset 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>TextFileOutput</type>
     <description>Dataset consolidado para análisis multimodal</description>
     <distribute>Y</distribute>
@@ -2366,11 +2304,7 @@ para análisis multimodal.
     <fileNameField/>
     <create_parent_folder>Y</create_parent_folder>
     <file>
-<<<<<<< HEAD
-      <name>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\data\viajes_madrid</name>
-=======
       <name>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data\viajes_madrid</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
       <servlet_output>N</servlet_output>
       <do_not_open_new_file_init>N</do_not_open_new_file_init>
       <extention>csv</extention>
@@ -2520,13 +2454,8 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>1088</xloc>
-      <yloc>1680</yloc>
-=======
       <xloc>1264</xloc>
       <yloc>1744</yloc>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -2702,9 +2631,6 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>Municipios</name>
-=======
     <name>Modificar el nombre del distrito</name>
     <type>ScriptValueMod</type>
     <description/>
@@ -2768,7 +2694,6 @@ if (zona_pernoctacion != null) {
   </transform>
   <transform>
     <name>Municipios 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>CSVInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -2818,21 +2743,12 @@ if (zona_pernoctacion != null) {
     </fields>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>96</xloc>
-      <yloc>1424</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Obtener provincias de madrid</name>
-=======
       <xloc>128</xloc>
       <yloc>1536</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Obtener provincias de madrid 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>MergeJoin</type>
     <description/>
     <distribute>Y</distribute>
@@ -2849,18 +2765,6 @@ if (zona_pernoctacion != null) {
     <keys_2>
       <key>provincia</key>
     </keys_2>
-<<<<<<< HEAD
-    <transform1>Ordenar Ascendente</transform1>
-    <transform2>Ordenar ascedente provincia</transform2>
-    <attributes/>
-    <GUI>
-      <xloc>448</xloc>
-      <yloc>1248</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Ordenar Ascendente</name>
-=======
     <transform1>Ordenar Ascendente 2</transform1>
     <transform2>Ordenar ascedente provincia 2</transform2>
     <attributes/>
@@ -2871,7 +2775,6 @@ if (zona_pernoctacion != null) {
   </transform>
   <transform>
     <name>Ordenar Ascendente 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -2898,21 +2801,12 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>352</xloc>
-      <yloc>1200</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Ordenar ascedente provincia</name>
-=======
       <xloc>384</xloc>
       <yloc>1312</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Ordenar ascedente provincia 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -2939,21 +2833,12 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>352</xloc>
-      <yloc>1312</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Ordenar ascendente ID</name>
-=======
       <xloc>384</xloc>
       <yloc>1424</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Ordenar ascendente ID 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -2980,21 +2865,12 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>464</xloc>
-      <yloc>1424</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Ordenar por id municipio</name>
-=======
       <xloc>496</xloc>
       <yloc>1536</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Ordenar por id municipio 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -3021,21 +2897,12 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>352</xloc>
-      <yloc>1520</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Ordenar por municipio</name>
-=======
       <xloc>384</xloc>
       <yloc>1632</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Ordenar por municipio 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -3062,21 +2929,12 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>816</xloc>
-      <yloc>1248</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Provincias y codigo</name>
-=======
       <xloc>864</xloc>
       <yloc>1360</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Provincias y codigo 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>CSVInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -3126,13 +2984,8 @@ if (zona_pernoctacion != null) {
     </fields>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>96</xloc>
-      <yloc>1200</yloc>
-=======
       <xloc>128</xloc>
       <yloc>1312</yloc>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -3183,11 +3036,7 @@ if (zona_pernoctacion != null) {
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>Replace in string</name>
-=======
     <name>Replace in string 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>ReplaceString</type>
     <description/>
     <distribute>Y</distribute>
@@ -3210,13 +3059,8 @@ if (zona_pernoctacion != null) {
     </fields>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>944</xloc>
-      <yloc>1600</yloc>
-=======
       <xloc>976</xloc>
       <yloc>1744</yloc>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -3710,11 +3554,7 @@ if (zona_pernoctacion != null) {
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>Seleccionar nombre e id</name>
-=======
     <name>Seleccionar nombre e id 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SelectValues</type>
     <description/>
     <distribute>Y</distribute>
@@ -3739,21 +3579,12 @@ if (zona_pernoctacion != null) {
     </fields>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>256</xloc>
-      <yloc>1424</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Sort rows</name>
-=======
       <xloc>288</xloc>
       <yloc>1536</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Sort rows 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -3812,13 +3643,8 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-<<<<<<< HEAD
-      <xloc>832</xloc>
-      <yloc>1680</yloc>
-=======
       <xloc>864</xloc>
       <yloc>1792</yloc>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -3859,11 +3685,7 @@ if (zona_pernoctacion != null) {
     </GUI>
   </transform>
   <transform>
-<<<<<<< HEAD
-    <name>eliminar duplicados 2</name>
-=======
     <name>eliminar duplicados 2 2</name>
->>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SelectValues</type>
     <description/>
     <distribute>Y</distribute>
