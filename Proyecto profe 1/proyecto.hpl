@@ -11,17 +11,21 @@
     <parameters>
       <parameter>
         <name>Data_Path</name>
-        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/PRVD/Proyecto profe 1/data</default_value>
+        <default_value>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data</default_value>
         <description>Ruta a la carpeta data del proyecto</description>
       </parameter>
       <parameter>
         <name>Output_Path</name>
-        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/PRVD/Proyecto profe 1/resultados</default_value>
+        <default_value>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\resultados</default_value>
         <description>Ruta de salida para datos procesados</description>
       </parameter>
       <parameter>
         <name>RUTA_TODOS_DATOS</name>
+<<<<<<< HEAD
         <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/PRVD/Proyecto profe 1/data</default_value>
+=======
+        <default_value>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data\DATOS_OPEN_DATA</default_value>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
         <description/>
       </parameter>
     </parameters>
@@ -333,103 +337,108 @@ para análisis multimodal.
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>CSV poblacion</from>
-      <to>Ordenar ascedente provincia</to>
+      <from>CSV poblacion 2</from>
+      <to>Ordenar ascedente provincia 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Eliminar duplicados</from>
-      <to>Ordenar por municipio</to>
+      <from>Eliminar duplicados 3</from>
+      <to>Ordenar por municipio 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Estadísticas Viajes</from>
-      <to>Ordenar por id municipio</to>
+      <from>Estadísticas Viajes 2</from>
+      <to>Ordenar por id municipio 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Filter rows</from>
-      <to>juntar distritos</to>
+      <from>Filter rows 2</from>
+      <to>juntar distritos 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Filtrar por Madrid</from>
-      <to>Ordenar Ascendente</to>
+      <from>Group by 2</from>
+      <to>Modificar el nombre del distrito</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Group by</from>
-      <to>Guardar dataset</to>
+      <from>Modificar el nombre del distrito</from>
+      <to>Guardar dataset 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Municipios</from>
-      <to>Seleccionar nombre e id</to>
+      <from>Municipios 2</from>
+      <to>Seleccionar nombre e id 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Obtener provincias de madrid</from>
-      <to>Eliminar duplicados</to>
+      <from>Obtener provincias de madrid 2</from>
+      <to>Eliminar duplicados 3</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Ordenar Ascendente</from>
-      <to>Obtener provincias de madrid</to>
+      <from>Ordenar ascedente provincia 2</from>
+      <to>Obtener provincias de madrid 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Ordenar ascedente provincia</from>
-      <to>Obtener provincias de madrid</to>
+      <from>Ordenar ascendente ID 2</from>
+      <to>Filter rows 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Ordenar ascendente ID</from>
-      <to>Filter rows</to>
+      <from>Ordenar por id municipio 2</from>
+      <to>unir por distrito 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Ordenar por id municipio</from>
-      <to>unir por distrito</to>
+      <from>Ordenar por municipio 2</from>
+      <to>juntar distritos 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Ordenar por municipio</from>
-      <to>juntar distritos</to>
+      <from>Replace in string 2</from>
+      <to>Sort rows 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Provincias y codigo</from>
-      <to>Filtrar por Madrid</to>
+      <from>Seleccionar nombre e id 2</from>
+      <to>Ordenar ascendente ID 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Replace in string</from>
-      <to>Sort rows</to>
+      <from>Sort rows 2</from>
+      <to>Group by 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Seleccionar nombre e id</from>
-      <to>Ordenar ascendente ID</to>
+      <from>eliminar duplicados 2 2</from>
+      <to>unir por distrito 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Sort rows</from>
-      <to>Group by</to>
+      <from>juntar distritos 2</from>
+      <to>eliminar duplicados 2 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>eliminar duplicados 2</from>
-      <to>unir por distrito</to>
+      <from>unir por distrito 2</from>
+      <to>Replace in string 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>juntar distritos</from>
-      <to>eliminar duplicados 2</to>
+      <from>Provincias y codigo 2</from>
+      <to>Filtrar por Madrid 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>unir por distrito</from>
-      <to>Replace in string</to>
+      <from>Ordenar Ascendente 2</from>
+      <to>Obtener provincias de madrid 2</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Filtrar por Madrid 2</from>
+      <to>Ordenar Ascendente 2</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -718,7 +727,11 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>CSV poblacion</name>
+=======
+    <name>CSV poblacion 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>CSVInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -790,8 +803,13 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>96</xloc>
       <yloc>1312</yloc>
+=======
+      <xloc>128</xloc>
+      <yloc>1424</yloc>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -1292,7 +1310,11 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>Eliminar duplicados</name>
+=======
+    <name>Eliminar duplicados 3</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SelectValues</type>
     <description/>
     <distribute>Y</distribute>
@@ -1327,8 +1349,13 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>640</xloc>
       <yloc>1248</yloc>
+=======
+      <xloc>720</xloc>
+      <yloc>1360</yloc>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -1369,7 +1396,11 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>Estadísticas Viajes</name>
+=======
+    <name>Estadísticas Viajes 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>TextFileInput2</type>
     <description/>
     <distribute>Y</distribute>
@@ -1538,12 +1569,21 @@ para análisis multimodal.
     <sizeFieldName/>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>96</xloc>
       <yloc>1520</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Filter rows</name>
+=======
+      <xloc>128</xloc>
+      <yloc>1632</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Filter rows 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>FilterRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -1573,8 +1613,13 @@ para análisis multimodal.
     </compare>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>640</xloc>
       <yloc>1424</yloc>
+=======
+      <xloc>672</xloc>
+      <yloc>1536</yloc>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -1739,7 +1784,11 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>Filtrar por Madrid</name>
+=======
+    <name>Filtrar por Madrid 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>FilterRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -1770,8 +1819,13 @@ para análisis multimodal.
     <send_true_to>Ordenar Ascendente</send_true_to>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>224</xloc>
       <yloc>1200</yloc>
+=======
+      <xloc>256</xloc>
+      <yloc>1312</yloc>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -2002,7 +2056,11 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>Group by</name>
+=======
+    <name>Group by 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>GroupBy</type>
     <description/>
     <distribute>Y</distribute>
@@ -2069,8 +2127,13 @@ para análisis multimodal.
     <prefix>grp</prefix>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>944</xloc>
       <yloc>1776</yloc>
+=======
+      <xloc>976</xloc>
+      <yloc>1888</yloc>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -2274,7 +2337,11 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>Guardar dataset</name>
+=======
+    <name>Guardar dataset 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>TextFileOutput</type>
     <description>Dataset consolidado para análisis multimodal</description>
     <distribute>Y</distribute>
@@ -2299,7 +2366,11 @@ para análisis multimodal.
     <fileNameField/>
     <create_parent_folder>Y</create_parent_folder>
     <file>
+<<<<<<< HEAD
       <name>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\data\viajes_madrid</name>
+=======
+      <name>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data\viajes_madrid</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
       <servlet_output>N</servlet_output>
       <do_not_open_new_file_init>N</do_not_open_new_file_init>
       <extention>csv</extention>
@@ -2449,8 +2520,13 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>1088</xloc>
       <yloc>1680</yloc>
+=======
+      <xloc>1264</xloc>
+      <yloc>1744</yloc>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -2626,7 +2702,73 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>Municipios</name>
+=======
+    <name>Modificar el nombre del distrito</name>
+    <type>ScriptValueMod</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <optimizationLevel>9</optimizationLevel>
+    <jsScripts>
+      <jsScript>
+        <jsScript_type>0</jsScript_type>
+        <jsScript_name>Script 1</jsScript_name>
+        <jsScript_script>//Script here
+
+// 1. Mapa de distritos corregido
+var distrito_map = {
+    "01": "Centro", "02": "Arganzuela", "03": "Retiro", "04": "Salamanca",
+    "05": "Chamartin", "06": "Tetuan", "07": "Chamberi", "08": "Fuencarral-El Pardo",
+    "09": "Moncloa-Aravaca", "10": "Latina", "11": "Carabanchel", "12": "Usera",
+    "13": "Puente de Vallecas", "14": "Moratalaz", "15": "Ciudad Lineal", "16": "Hortaleza",
+    "17": "Villaverde", "18": "Villa de Vallecas", "19": "Vicalvaro", "20": "San Blas",
+    "21": "Barajas"
+};
+
+// 2. Obtener el código limpio de "zona_pernoctacion" (ej. "2807901")
+var zona_str = "";
+var nuevo_nombre = name; // Por defecto dejamos el que ya existía por seguridad
+
+if (zona_pernoctacion != null) {
+    zona_str = zona_pernoctacion.toString().trim();
+    
+    // Cogemos siempre los últimos 2 caracteres con slice(-2)
+    // Esto convierte "2807901" en "01" y "2807921" en "21"
+    var codigo_limpio = zona_str.slice(-2);
+    
+    // 3. Buscamos en el mapa
+    if (distrito_map[codigo_limpio] != undefined) {
+        nuevo_nombre = distrito_map[codigo_limpio];
+    }
+}</jsScript_script>
+      </jsScript>
+    </jsScripts>
+    <fields>
+      <field>
+        <name>nuevo_nombre</name>
+        <rename>name</rename>
+        <type>String</type>
+        <length>50</length>
+        <precision>-1</precision>
+        <replace>Y</replace>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1136</xloc>
+      <yloc>1840</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Municipios 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>CSVInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -2676,12 +2818,21 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>96</xloc>
       <yloc>1424</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Obtener provincias de madrid</name>
+=======
+      <xloc>128</xloc>
+      <yloc>1536</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Obtener provincias de madrid 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>MergeJoin</type>
     <description/>
     <distribute>Y</distribute>
@@ -2698,6 +2849,7 @@ para análisis multimodal.
     <keys_2>
       <key>provincia</key>
     </keys_2>
+<<<<<<< HEAD
     <transform1>Ordenar Ascendente</transform1>
     <transform2>Ordenar ascedente provincia</transform2>
     <attributes/>
@@ -2708,6 +2860,18 @@ para análisis multimodal.
   </transform>
   <transform>
     <name>Ordenar Ascendente</name>
+=======
+    <transform1>Ordenar Ascendente 2</transform1>
+    <transform2>Ordenar ascedente provincia 2</transform2>
+    <attributes/>
+    <GUI>
+      <xloc>544</xloc>
+      <yloc>1360</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Ordenar Ascendente 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -2734,12 +2898,21 @@ para análisis multimodal.
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>352</xloc>
       <yloc>1200</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Ordenar ascedente provincia</name>
+=======
+      <xloc>384</xloc>
+      <yloc>1312</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Ordenar ascedente provincia 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -2766,12 +2939,21 @@ para análisis multimodal.
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>352</xloc>
       <yloc>1312</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Ordenar ascendente ID</name>
+=======
+      <xloc>384</xloc>
+      <yloc>1424</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Ordenar ascendente ID 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -2798,12 +2980,21 @@ para análisis multimodal.
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>464</xloc>
       <yloc>1424</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Ordenar por id municipio</name>
+=======
+      <xloc>496</xloc>
+      <yloc>1536</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Ordenar por id municipio 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -2830,12 +3021,21 @@ para análisis multimodal.
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>352</xloc>
       <yloc>1520</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Ordenar por municipio</name>
+=======
+      <xloc>384</xloc>
+      <yloc>1632</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Ordenar por municipio 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -2862,12 +3062,21 @@ para análisis multimodal.
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>816</xloc>
       <yloc>1248</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Provincias y codigo</name>
+=======
+      <xloc>864</xloc>
+      <yloc>1360</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Provincias y codigo 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>CSVInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -2917,8 +3126,13 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>96</xloc>
       <yloc>1200</yloc>
+=======
+      <xloc>128</xloc>
+      <yloc>1312</yloc>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -2969,7 +3183,11 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>Replace in string</name>
+=======
+    <name>Replace in string 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>ReplaceString</type>
     <description/>
     <distribute>Y</distribute>
@@ -2992,8 +3210,13 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>944</xloc>
       <yloc>1600</yloc>
+=======
+      <xloc>976</xloc>
+      <yloc>1744</yloc>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -3487,7 +3710,11 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>Seleccionar nombre e id</name>
+=======
+    <name>Seleccionar nombre e id 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SelectValues</type>
     <description/>
     <distribute>Y</distribute>
@@ -3512,12 +3739,21 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>256</xloc>
       <yloc>1424</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Sort rows</name>
+=======
+      <xloc>288</xloc>
+      <yloc>1536</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Sort rows 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -3576,8 +3812,13 @@ para análisis multimodal.
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
+<<<<<<< HEAD
       <xloc>832</xloc>
       <yloc>1680</yloc>
+=======
+      <xloc>864</xloc>
+      <yloc>1792</yloc>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     </GUI>
   </transform>
   <transform>
@@ -3618,7 +3859,11 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
+<<<<<<< HEAD
     <name>eliminar duplicados 2</name>
+=======
+    <name>eliminar duplicados 2 2</name>
+>>>>>>> 0c95337aa08e2da43e66cc1a03d5e7d1ac0730d8
     <type>SelectValues</type>
     <description/>
     <distribute>Y</distribute>
@@ -3658,12 +3903,12 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
-      <xloc>944</xloc>
-      <yloc>1424</yloc>
+      <xloc>976</xloc>
+      <yloc>1536</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>juntar distritos</name>
+    <name>juntar distritos 2</name>
     <type>MergeJoin</type>
     <description/>
     <distribute>Y</distribute>
@@ -3680,16 +3925,16 @@ para análisis multimodal.
     <keys_2>
       <key>ID</key>
     </keys_2>
-    <transform1>Ordenar por municipio</transform1>
-    <transform2>Filter rows</transform2>
+    <transform1>Ordenar por municipio 2</transform1>
+    <transform2>Filter rows 2</transform2>
     <attributes/>
     <GUI>
-      <xloc>816</xloc>
-      <yloc>1424</yloc>
+      <xloc>848</xloc>
+      <yloc>1536</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>unir por distrito</name>
+    <name>unir por distrito 2</name>
     <type>MergeJoin</type>
     <description/>
     <distribute>N</distribute>
@@ -3706,12 +3951,12 @@ para análisis multimodal.
     <keys_2>
       <key>distrito</key>
     </keys_2>
-    <transform1>Ordenar por id municipio</transform1>
-    <transform2>eliminar duplicados 2</transform2>
+    <transform1>Ordenar por id municipio 2</transform1>
+    <transform2>eliminar duplicados 2 2</transform2>
     <attributes/>
     <GUI>
-      <xloc>944</xloc>
-      <yloc>1520</yloc>
+      <xloc>976</xloc>
+      <yloc>1632</yloc>
     </GUI>
   </transform>
   <transform_error_handling>
