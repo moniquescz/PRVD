@@ -153,17 +153,56 @@ El resultado es: parking_id, parking_name, latitude, longitude, standard_spaces,
       <fontitalic>N</fontitalic>
       <fontname>.AppleSystemUIFont</fontname>
       <fontsize>13</fontsize>
-      <height>160</height>
-      <xloc>800</xloc>
-      <yloc>50</yloc>
+      <height>143</height>
+      <xloc>832</xloc>
+      <yloc>48</yloc>
       <note>FLUJO 5: INTEGRACIÓN Y ENRIQUECIMIENTO
 Los datasets procesados se consolidan añadiendo un campo 'transport_mode'
-(metro, bus, bicimad, parking) para identificar el tipo de transporte.
+(metro, bus, bicimad, parking) para identificar el tipo de transporte, así como al  distrito al que pertenecen.
 Se estandarizan todos los nombres de campos para facilitar análisis conjunto.
 Los datos integrados se exportan a CSV individuales y a un CSV consolidado
 para análisis multimodal.
 </note>
-      <width>700</width>
+      <width>787</width>
+    </notepad>
+    <notepad>
+      <backgroundcolorblue>251</backgroundcolorblue>
+      <backgroundcolorgreen>232</backgroundcolorgreen>
+      <backgroundcolorred>201</backgroundcolorred>
+      <bordercolorblue>90</bordercolorblue>
+      <bordercolorgreen>58</bordercolorgreen>
+      <bordercolorred>14</bordercolorred>
+      <fontbold>N</fontbold>
+      <fontcolorblue>90</fontcolorblue>
+      <fontcolorgreen>58</fontcolorgreen>
+      <fontcolorred>14</fontcolorred>
+      <fontitalic>N</fontitalic>
+      <fontname>.AppleSystemUIFont</fontname>
+      <fontsize>13</fontsize>
+      <height>390</height>
+      <xloc>32</xloc>
+      <yloc>1248</yloc>
+      <note>FLUJO 6: Procesar datos por distritos de cantidad de viajes de cada grupo de individuos.
+
+1. Se cargan los datos de las provincias y el sus códigos para filtrar la provincia de madrid (02).
+
+2. Cargamos el CSV población, donde tenemos la población por distritos para unir al daraset de provincias y códigos.
+
+3. Cargamos los datos de los distritos donde nos quedamos con 
+el nombre y el código del distrito para juntarlo con los datos obtenidos de población de distritos.
+
+4. Tras eliminar los duplicamos, unimos el dataset resultante en un dataset global 
+en el que almacenamos todas las estadísticas de viajes de todos los distritos a los que añadimos 
+la población de cada distrito y los nombres de cada población. 
+
+El dataset resultante es viajes_madrid.csv con 
+(fecha;name;edad;sexo;numero_viajes;personas;Codigo;Provincia;distrito;zona_pernoctacion;poblacion). 
+El cual contiene toda la información de viajes de grupos de personas por edades y sexo y los viajes que se han realizado por zonas.
+
+
+
+</note>
+      <width>973</width>
     </notepad>
   </notepads>
   <order>
@@ -308,11 +347,6 @@ para análisis multimodal.
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Juntar metro, bus y biciMAD con parkings</from>
-      <to>Guardar dataset consolidado</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>Juntar metro con bus</from>
       <to>Formatear campos</to>
       <enabled>Y</enabled>
@@ -333,7 +367,7 @@ para análisis multimodal.
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>CSV poblacion 2</from>
+      <from>CSV poblacion distritos</from>
       <to>Ordenar ascedente provincia 2</to>
       <enabled>Y</enabled>
     </hop>
@@ -353,17 +387,12 @@ para análisis multimodal.
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Group by 2</from>
+      <from>Agrupar por mes</from>
       <to>Modificar el nombre del distrito</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Modificar el nombre del distrito</from>
-      <to>Guardar dataset 2</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Municipios 2</from>
+      <from>CSV Distritos</from>
       <to>Seleccionar nombre e id 2</to>
       <enabled>Y</enabled>
     </hop>
@@ -393,8 +422,8 @@ para análisis multimodal.
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Replace in string 2</from>
-      <to>Sort rows 2</to>
+      <from>Quitar dia de la fecha</from>
+      <to>Ordenar Datos</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -403,23 +432,23 @@ para análisis multimodal.
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Sort rows 2</from>
-      <to>Group by 2</to>
+      <from>Ordenar Datos</from>
+      <to>Agrupar por mes</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>eliminar duplicados 2 2</from>
+      <from>eliminar duplicados</from>
       <to>unir por distrito 2</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
       <from>juntar distritos 2</from>
-      <to>eliminar duplicados 2 2</to>
+      <to>eliminar duplicados</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
       <from>unir por distrito 2</from>
-      <to>Replace in string 2</to>
+      <to>Quitar dia de la fecha</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -435,6 +464,36 @@ para análisis multimodal.
     <hop>
       <from>Filtrar por Madrid 2</from>
       <to>Ordenar Ascendente 2</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Juntar metro, bus y biciMAD con parkings</from>
+      <to>Añadir campo Distrito según las coordenadas</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Añadir campo Distrito según las coordenadas</from>
+      <to>Ordenar las filas</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Ordenar las filas</from>
+      <to>Guardar dataset consolidado</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Modificar el nombre del distrito</from>
+      <to>Cambiando a tipo Date el campo 'fecha'</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Cambiando a tipo Date el campo 'fecha'</from>
+      <to>Formateando fecha</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Formateando fecha</from>
+      <to>Guardar viajes madrid</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -544,6 +603,216 @@ para análisis multimodal.
     <GUI>
       <xloc>992</xloc>
       <yloc>976</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Agrupar por mes</name>
+    <type>GroupBy</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <add_linenr>N</add_linenr>
+    <all_rows>N</all_rows>
+    <directory>${java.io.tmpdir}</directory>
+    <fields>
+      <field>
+        <aggregate>personas</aggregate>
+        <subject>personas</subject>
+        <type>SUM</type>
+      </field>
+      <field>
+        <aggregate>Codigo</aggregate>
+        <subject>Codigo</subject>
+        <type>FIRST_INCL_NULL</type>
+      </field>
+      <field>
+        <aggregate>Provincia</aggregate>
+        <subject>Provincia</subject>
+        <type>FIRST_INCL_NULL</type>
+      </field>
+      <field>
+        <aggregate>distrito</aggregate>
+        <subject>distrito</subject>
+        <type>FIRST_INCL_NULL</type>
+      </field>
+      <field>
+        <aggregate>zona_pernoctacion</aggregate>
+        <subject>zona_pernoctacion</subject>
+        <type>FIRST_INCL_NULL</type>
+      </field>
+      <field>
+        <aggregate>poblacion</aggregate>
+        <subject>poblacion</subject>
+        <type>FIRST_INCL_NULL</type>
+      </field>
+    </fields>
+    <give_back_row>N</give_back_row>
+    <group>
+      <field>
+        <name>fecha</name>
+      </field>
+      <field>
+        <name>name</name>
+      </field>
+      <field>
+        <name>edad</name>
+      </field>
+      <field>
+        <name>sexo</name>
+      </field>
+      <field>
+        <name>numero_viajes</name>
+      </field>
+    </group>
+    <ignore_aggregate>N</ignore_aggregate>
+    <prefix>grp</prefix>
+    <attributes/>
+    <GUI>
+      <xloc>1232</xloc>
+      <yloc>2016</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Añadir campo Distrito según las coordenadas</name>
+    <type>ScriptValueMod</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <optimizationLevel>9</optimizationLevel>
+    <jsScripts>
+      <jsScript>
+        <jsScript_type>0</jsScript_type>
+        <jsScript_name>Script 1</jsScript_name>
+        <jsScript_script>//Script here
+
+// Definición de centroides aproximados de los distritos de Madrid
+// Formato: {codigo, latitud, longitud}
+var districts = [
+    { code: 2807901, lat: 40.4155, lon: -3.7074 }, // Centro
+    { code: 2807902, lat: 40.3980, lon: -3.6937 }, // Arganzuela
+    { code: 2807903, lat: 40.4111, lon: -3.6766 }, // Retiro
+    { code: 2807904, lat: 40.4273, lon: -3.6775 }, // Salamanca
+    { code: 2807905, lat: 40.4526, lon: -3.6779 }, // Chamartín
+    { code: 2807906, lat: 40.4605, lon: -3.6983 }, // Tetuán
+    { code: 2807907, lat: 40.4362, lon: -3.7038 }, // Chamberí
+    { code: 2807908, lat: 40.4900, lon: -3.7100 }, // Fuencarral-El Pardo
+    { code: 2807909, lat: 40.4397, lon: -3.7300 }, // Moncloa-Aravaca
+    { code: 2807910, lat: 40.4036, lon: -3.7430 }, // Latina
+    { code: 2807911, lat: 40.3800, lon: -3.7400 }, // Carabanchel
+    { code: 2807912, lat: 40.3820, lon: -3.7050 }, // Usera
+    { code: 2807913, lat: 40.3890, lon: -3.6600 }, // Puente de Vallecas
+    { code: 2807914, lat: 40.4050, lon: -3.6450 }, // Moratalaz
+    { code: 2807915, lat: 40.4450, lon: -3.6500 }, // Ciudad Lineal
+    { code: 2807916, lat: 40.4700, lon: -3.6400 }, // Hortaleza
+    { code: 2807917, lat: 40.3450, lon: -3.6950 }, // Villaverde
+    { code: 2807918, lat: 40.3700, lon: -3.6100 }, // Villa de Vallecas
+    { code: 2807919, lat: 40.4000, lon: -3.6000 }, // Vicálvaro
+    { code: 2807920, lat: 40.4300, lon: -3.6200 }, // San Blas-Canillejas
+    { code: 2807921, lat: 40.4700, lon: -3.5800 }  // Barajas
+];
+
+var input_lat = stop_lat;
+var input_lon = stop_lon; 
+
+var min_dist = 99999999;
+var distrito_asignado = 0; 
+
+// Si las coordenadas son válidas
+if (input_lat != null &amp;&amp; input_lon != null) {
+    for (var i = 0; i &lt; districts.length; i++) {
+        var d = districts[i];
+        
+        // Cálculo de distancia euclidiana simple (suficiente para asignar cercanía)
+        var dist = (input_lat - d.lat) * (input_lat - d.lat) + 
+                   (input_lon - d.lon) * (input_lon - d.lon);
+        
+        if (dist &lt; min_dist) {
+            min_dist = dist;
+            distrito_asignado = d.code;
+        }
+    }
+}</jsScript_script>
+      </jsScript>
+    </jsScripts>
+    <fields>
+      <field>
+        <name>distrito_asignado</name>
+        <rename>distrito_asignado</rename>
+        <type>Integer</type>
+        <length>-1</length>
+        <precision>0</precision>
+        <replace>N</replace>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1936</xloc>
+      <yloc>1200</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>CSV Distritos</name>
+    <type>CSVInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <filename>${RUTA_TODOS_DATOS}/nombres_distritos.csv</filename>
+    <filename_field/>
+    <rownum_field/>
+    <include_filename>N</include_filename>
+    <separator>|</separator>
+    <enclosure>"</enclosure>
+    <header>Y</header>
+    <buffer_size>50000</buffer_size>
+    <schemaDefinition/>
+    <lazy_conversion>Y</lazy_conversion>
+    <add_filename_result>N</add_filename_result>
+    <parallel>N</parallel>
+    <newline_possible>N</newline_possible>
+    <encoding/>
+    <fields>
+      <field>
+        <name>ID</name>
+        <type>String</type>
+        <format/>
+        <currency>$</currency>
+        <decimal>,</decimal>
+        <group>.</group>
+        <length>8</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>name</name>
+        <type>String</type>
+        <format/>
+        <currency>$</currency>
+        <decimal>,</decimal>
+        <group>.</group>
+        <length>46</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>64</xloc>
+      <yloc>1920</yloc>
     </GUI>
   </transform>
   <transform>
@@ -723,7 +992,7 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-    <name>CSV poblacion 2</name>
+    <name>CSV poblacion distritos</name>
     <type>CSVInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -795,8 +1064,40 @@ para análisis multimodal.
     </fields>
     <attributes/>
     <GUI>
-      <xloc>128</xloc>
-      <yloc>1424</yloc>
+      <xloc>64</xloc>
+      <yloc>1808</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Cambiando a tipo Date el campo 'fecha'</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <meta>
+        <conversion_mask>yyyyMM</conversion_mask>
+        <date_format_lenient>N</date_format_lenient>
+        <length>-2</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>fecha</name>
+        <precision>-2</precision>
+        <rename>fecha</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type/>
+        <type>Date</type>
+      </meta>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1424</xloc>
+      <yloc>1904</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1333,7 +1634,7 @@ para análisis multimodal.
     <attributes/>
     <GUI>
       <xloc>720</xloc>
-      <yloc>1360</yloc>
+      <yloc>1744</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1543,8 +1844,8 @@ para análisis multimodal.
     <sizeFieldName/>
     <attributes/>
     <GUI>
-      <xloc>128</xloc>
-      <yloc>1632</yloc>
+      <xloc>64</xloc>
+      <yloc>2016</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1578,8 +1879,8 @@ para análisis multimodal.
     </compare>
     <attributes/>
     <GUI>
-      <xloc>672</xloc>
-      <yloc>1536</yloc>
+      <xloc>640</xloc>
+      <yloc>1920</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1775,8 +2076,40 @@ para análisis multimodal.
     <send_true_to>Ordenar Ascendente</send_true_to>
     <attributes/>
     <GUI>
-      <xloc>256</xloc>
-      <yloc>1312</yloc>
+      <xloc>224</xloc>
+      <yloc>1696</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Formateando fecha</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <meta>
+        <conversion_mask>yyyy-MM</conversion_mask>
+        <date_format_lenient>N</date_format_lenient>
+        <length>-2</length>
+        <lenient_string_to_number>N</lenient_string_to_number>
+        <name>fecha</name>
+        <precision>-2</precision>
+        <rename>fecha</rename>
+        <roundingType>half_even</roundingType>
+        <storage_type/>
+        <type>String</type>
+      </meta>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1424</xloc>
+      <yloc>1792</yloc>
     </GUI>
   </transform>
   <transform>
@@ -2007,78 +2340,6 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-    <name>Group by 2</name>
-    <type>GroupBy</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <add_linenr>N</add_linenr>
-    <all_rows>N</all_rows>
-    <directory>${java.io.tmpdir}</directory>
-    <fields>
-      <field>
-        <aggregate>personas</aggregate>
-        <subject>personas</subject>
-        <type>SUM</type>
-      </field>
-      <field>
-        <aggregate>Codigo</aggregate>
-        <subject>Codigo</subject>
-        <type>FIRST_INCL_NULL</type>
-      </field>
-      <field>
-        <aggregate>Provincia</aggregate>
-        <subject>Provincia</subject>
-        <type>FIRST_INCL_NULL</type>
-      </field>
-      <field>
-        <aggregate>distrito</aggregate>
-        <subject>distrito</subject>
-        <type>FIRST_INCL_NULL</type>
-      </field>
-      <field>
-        <aggregate>zona_pernoctacion</aggregate>
-        <subject>zona_pernoctacion</subject>
-        <type>FIRST_INCL_NULL</type>
-      </field>
-      <field>
-        <aggregate>poblacion</aggregate>
-        <subject>poblacion</subject>
-        <type>FIRST_INCL_NULL</type>
-      </field>
-    </fields>
-    <give_back_row>N</give_back_row>
-    <group>
-      <field>
-        <name>fecha</name>
-      </field>
-      <field>
-        <name>name</name>
-      </field>
-      <field>
-        <name>edad</name>
-      </field>
-      <field>
-        <name>sexo</name>
-      </field>
-      <field>
-        <name>numero_viajes</name>
-      </field>
-    </group>
-    <ignore_aggregate>N</ignore_aggregate>
-    <prefix>grp</prefix>
-    <attributes/>
-    <GUI>
-      <xloc>976</xloc>
-      <yloc>1888</yloc>
-    </GUI>
-  </transform>
-  <transform>
     <name>Guardar Autobuses procesado</name>
     <type>TextFileOutput</type>
     <description/>
@@ -2279,186 +2540,6 @@ para análisis multimodal.
     </GUI>
   </transform>
   <transform>
-    <name>Guardar dataset 2</name>
-    <type>TextFileOutput</type>
-    <description>Dataset consolidado para análisis multimodal</description>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <schema_definition/>
-    <separator>;</separator>
-    <enclosure>"</enclosure>
-    <enclosure_forced>N</enclosure_forced>
-    <enclosure_fix_disabled>Y</enclosure_fix_disabled>
-    <header>Y</header>
-    <footer>N</footer>
-    <format>DOS</format>
-    <compression>None</compression>
-    <encoding>UTF-8</encoding>
-    <endedLine/>
-    <fileNameInField>N</fileNameInField>
-    <fileNameField/>
-    <create_parent_folder>Y</create_parent_folder>
-    <file>
-      <name>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data\viajes_madrid</name>
-      <servlet_output>N</servlet_output>
-      <do_not_open_new_file_init>N</do_not_open_new_file_init>
-      <extention>csv</extention>
-      <append>N</append>
-      <split>N</split>
-      <haspartno>N</haspartno>
-      <add_date>N</add_date>
-      <add_time>N</add_time>
-      <SpecifyFormat>N</SpecifyFormat>
-      <date_time_format/>
-      <add_to_result_filenames>Y</add_to_result_filenames>
-      <pad>N</pad>
-      <fast_dump>N</fast_dump>
-      <splitevery/>
-    </file>
-    <fields>
-      <field>
-        <name>Codigo</name>
-        <type>Integer</type>
-        <format>#</format>
-        <currency>$</currency>
-        <decimal>,</decimal>
-        <group>.</group>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>15</length>
-        <precision>0</precision>
-      </field>
-      <field>
-        <name>Provincia</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>22</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>distrito</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>8</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>name</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>46</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>poblacion</name>
-        <type>Number</type>
-        <format>#.#</format>
-        <currency>$</currency>
-        <decimal>.</decimal>
-        <group>,</group>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>15</length>
-        <precision>1</precision>
-      </field>
-      <field>
-        <name>fecha</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>edad</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>sexo</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>numero_viajes</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-      <field>
-        <name>personas</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <trim_type>none</trim_type>
-        <roundingType>half_even</roundingType>
-        <length>-1</length>
-        <precision>-1</precision>
-      </field>
-    </fields>
-    <attributes/>
-    <GUI>
-      <xloc>1264</xloc>
-      <yloc>1744</yloc>
-    </GUI>
-  </transform>
-  <transform>
     <name>Guardar dataset consolidado</name>
     <type>TextFileOutput</type>
     <description>Dataset consolidado para análisis multimodal</description>
@@ -2566,11 +2647,74 @@ para análisis multimodal.
         <length>200</length>
         <precision>-1</precision>
       </field>
+      <field>
+        <name>distrito_asignado</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <trim_type>none</trim_type>
+        <roundingType>half_even</roundingType>
+        <length>200</length>
+        <precision>-1</precision>
+      </field>
     </fields>
     <attributes/>
     <GUI>
-      <xloc>2240</xloc>
-      <yloc>1088</yloc>
+      <xloc>1456</xloc>
+      <yloc>1200</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Guardar viajes madrid</name>
+    <type>TextFileOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <schema_definition/>
+    <separator>;</separator>
+    <enclosure>"</enclosure>
+    <enclosure_forced>N</enclosure_forced>
+    <enclosure_fix_disabled>N</enclosure_fix_disabled>
+    <header>Y</header>
+    <footer>N</footer>
+    <format>DOS</format>
+    <compression>None</compression>
+    <encoding>UTF-8</encoding>
+    <endedLine/>
+    <fileNameInField>N</fileNameInField>
+    <fileNameField/>
+    <create_parent_folder>Y</create_parent_folder>
+    <file>
+      <name>${Output_Path}/viajes_madrid</name>
+      <servlet_output>N</servlet_output>
+      <do_not_open_new_file_init>Y</do_not_open_new_file_init>
+      <extention>csv</extention>
+      <append>N</append>
+      <split>N</split>
+      <haspartno>N</haspartno>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <SpecifyFormat>N</SpecifyFormat>
+      <date_time_format/>
+      <add_to_result_filenames>Y</add_to_result_filenames>
+      <pad>N</pad>
+      <fast_dump>N</fast_dump>
+      <splitevery/>
+    </file>
+    <fields>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1424</xloc>
+      <yloc>1680</yloc>
     </GUI>
   </transform>
   <transform>
@@ -2688,63 +2832,8 @@ if (zona_pernoctacion != null) {
     </fields>
     <attributes/>
     <GUI>
-      <xloc>1136</xloc>
-      <yloc>1840</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Municipios 2</name>
-    <type>CSVInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <filename>${RUTA_TODOS_DATOS}/nombres_distritos.csv</filename>
-    <filename_field/>
-    <rownum_field/>
-    <include_filename>N</include_filename>
-    <separator>|</separator>
-    <enclosure>"</enclosure>
-    <header>Y</header>
-    <buffer_size>50000</buffer_size>
-    <schemaDefinition/>
-    <lazy_conversion>Y</lazy_conversion>
-    <add_filename_result>N</add_filename_result>
-    <parallel>N</parallel>
-    <newline_possible>N</newline_possible>
-    <encoding/>
-    <fields>
-      <field>
-        <name>ID</name>
-        <type>String</type>
-        <format/>
-        <currency>$</currency>
-        <decimal>,</decimal>
-        <group>.</group>
-        <length>8</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>name</name>
-        <type>String</type>
-        <format/>
-        <currency>$</currency>
-        <decimal>,</decimal>
-        <group>.</group>
-        <length>46</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-    </fields>
-    <attributes/>
-    <GUI>
-      <xloc>128</xloc>
-      <yloc>1536</yloc>
+      <xloc>1424</xloc>
+      <yloc>2016</yloc>
     </GUI>
   </transform>
   <transform>
@@ -2769,8 +2858,8 @@ if (zona_pernoctacion != null) {
     <transform2>Ordenar ascedente provincia 2</transform2>
     <attributes/>
     <GUI>
-      <xloc>544</xloc>
-      <yloc>1360</yloc>
+      <xloc>528</xloc>
+      <yloc>1744</yloc>
     </GUI>
   </transform>
   <transform>
@@ -2802,7 +2891,71 @@ if (zona_pernoctacion != null) {
     <attributes/>
     <GUI>
       <xloc>384</xloc>
-      <yloc>1312</yloc>
+      <yloc>1696</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Ordenar Datos</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <compress>N</compress>
+    <directory>${java.io.tmpdir}</directory>
+    <fields>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>fecha</name>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>name</name>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>edad</name>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>sexo</name>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>numero_viajes</name>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <sort_prefix>out</sort_prefix>
+    <sort_size>1000000</sort_size>
+    <unique_rows>N</unique_rows>
+    <attributes/>
+    <GUI>
+      <xloc>1232</xloc>
+      <yloc>2128</yloc>
     </GUI>
   </transform>
   <transform>
@@ -2833,8 +2986,8 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-      <xloc>384</xloc>
-      <yloc>1424</yloc>
+      <xloc>256</xloc>
+      <yloc>1808</yloc>
     </GUI>
   </transform>
   <transform>
@@ -2865,8 +3018,80 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-      <xloc>496</xloc>
-      <yloc>1536</yloc>
+      <xloc>464</xloc>
+      <yloc>1920</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Ordenar las filas</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <compress>N</compress>
+    <directory>${java.io.tmpdir}</directory>
+    <fields>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>stop_name</name>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>stop_lat</name>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>stop_lon</name>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>transport_mode</name>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>stop_id</name>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <name>distrito_asignado</name>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <sort_prefix>out</sort_prefix>
+    <sort_size>1000000</sort_size>
+    <unique_rows>N</unique_rows>
+    <attributes/>
+    <GUI>
+      <xloc>1680</xloc>
+      <yloc>1200</yloc>
     </GUI>
   </transform>
   <transform>
@@ -2897,8 +3122,8 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-      <xloc>384</xloc>
-      <yloc>1632</yloc>
+      <xloc>256</xloc>
+      <yloc>2016</yloc>
     </GUI>
   </transform>
   <transform>
@@ -2929,8 +3154,8 @@ if (zona_pernoctacion != null) {
     <unique_rows>N</unique_rows>
     <attributes/>
     <GUI>
-      <xloc>864</xloc>
-      <yloc>1360</yloc>
+      <xloc>896</xloc>
+      <yloc>1744</yloc>
     </GUI>
   </transform>
   <transform>
@@ -2984,8 +3209,36 @@ if (zona_pernoctacion != null) {
     </fields>
     <attributes/>
     <GUI>
-      <xloc>128</xloc>
-      <yloc>1312</yloc>
+      <xloc>64</xloc>
+      <yloc>1696</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Quitar dia de la fecha</name>
+    <type>ReplaceString</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <case_sensitive>N</case_sensitive>
+        <in_stream_name>fecha</in_stream_name>
+        <is_unicode>N</is_unicode>
+        <replace_string>\d{2}$</replace_string>
+        <set_empty_string>N</set_empty_string>
+        <use_regex>Y</use_regex>
+        <whole_word>N</whole_word>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>1072</xloc>
+      <yloc>2128</yloc>
     </GUI>
   </transform>
   <transform>
@@ -3033,34 +3286,6 @@ if (zona_pernoctacion != null) {
     <GUI>
       <xloc>560</xloc>
       <yloc>464</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Replace in string 2</name>
-    <type>ReplaceString</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <case_sensitive>N</case_sensitive>
-        <in_stream_name>fecha</in_stream_name>
-        <is_unicode>N</is_unicode>
-        <replace_string>\d{2}$</replace_string>
-        <set_empty_string>N</set_empty_string>
-        <use_regex>Y</use_regex>
-        <whole_word>N</whole_word>
-      </field>
-    </fields>
-    <attributes/>
-    <GUI>
-      <xloc>976</xloc>
-      <yloc>1744</yloc>
     </GUI>
   </transform>
   <transform>
@@ -3409,7 +3634,7 @@ if (zona_pernoctacion != null) {
     </fields>
     <attributes/>
     <GUI>
-      <xloc>1168</xloc>
+      <xloc>1232</xloc>
       <yloc>336</yloc>
     </GUI>
   </transform>
@@ -3579,72 +3804,8 @@ if (zona_pernoctacion != null) {
     </fields>
     <attributes/>
     <GUI>
-      <xloc>288</xloc>
-      <yloc>1536</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Sort rows 2</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <compress>N</compress>
-    <directory>${java.io.tmpdir}</directory>
-    <fields>
-      <field>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <name>fecha</name>
-        <presorted>N</presorted>
-      </field>
-      <field>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <name>name</name>
-        <presorted>N</presorted>
-      </field>
-      <field>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <name>edad</name>
-        <presorted>N</presorted>
-      </field>
-      <field>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <name>sexo</name>
-        <presorted>N</presorted>
-      </field>
-      <field>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <name>numero_viajes</name>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-    <sort_prefix>out</sort_prefix>
-    <sort_size>1000000</sort_size>
-    <unique_rows>N</unique_rows>
-    <attributes/>
-    <GUI>
-      <xloc>864</xloc>
-      <yloc>1792</yloc>
+      <xloc>256</xloc>
+      <yloc>1920</yloc>
     </GUI>
   </transform>
   <transform>
@@ -3685,7 +3846,7 @@ if (zona_pernoctacion != null) {
     </GUI>
   </transform>
   <transform>
-    <name>eliminar duplicados 2 2</name>
+    <name>eliminar duplicados</name>
     <type>SelectValues</type>
     <description/>
     <distribute>Y</distribute>
@@ -3725,8 +3886,8 @@ if (zona_pernoctacion != null) {
     </fields>
     <attributes/>
     <GUI>
-      <xloc>976</xloc>
-      <yloc>1536</yloc>
+      <xloc>1072</xloc>
+      <yloc>1920</yloc>
     </GUI>
   </transform>
   <transform>
@@ -3751,8 +3912,8 @@ if (zona_pernoctacion != null) {
     <transform2>Filter rows 2</transform2>
     <attributes/>
     <GUI>
-      <xloc>848</xloc>
-      <yloc>1536</yloc>
+      <xloc>896</xloc>
+      <yloc>1920</yloc>
     </GUI>
   </transform>
   <transform>
@@ -3774,11 +3935,10 @@ if (zona_pernoctacion != null) {
       <key>distrito</key>
     </keys_2>
     <transform1>Ordenar por id municipio 2</transform1>
-    <transform2>eliminar duplicados 2 2</transform2>
     <attributes/>
     <GUI>
-      <xloc>976</xloc>
-      <yloc>1632</yloc>
+      <xloc>1072</xloc>
+      <yloc>2016</yloc>
     </GUI>
   </transform>
   <transform_error_handling>
