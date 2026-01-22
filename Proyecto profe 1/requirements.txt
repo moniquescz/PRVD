@@ -1,0 +1,8 @@
+pandas
+pyproj
+numpy
+folium
+seaborn
+matplotlib
+scipy
+requests
