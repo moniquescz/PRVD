@@ -11,17 +11,17 @@
     <parameters>
       <parameter>
         <name>Data_Path</name>
-        <default_value>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\data</default_value>
+        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/PRVD/Proyecto profe 1/data</default_value>
         <description>Ruta a la carpeta data del proyecto</description>
       </parameter>
       <parameter>
         <name>Output_Path</name>
-        <default_value>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\resultados</default_value>
+        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/PRVD/Proyecto profe 1/resultados</default_value>
         <description>Ruta de salida para datos procesados</description>
       </parameter>
       <parameter>
         <name>RUTA_TODOS_DATOS</name>
-        <default_value>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\data\DATOS_OPEN_DATA</default_value>
+        <default_value>/Users/monica/Desktop/MSc_CienciaDatos/PRVD/PRVD/Proyecto profe 1/data/DATOS_OPEN_DATA</default_value>
         <description/>
       </parameter>
     </parameters>
