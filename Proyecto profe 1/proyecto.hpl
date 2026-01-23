@@ -11,17 +11,17 @@
     <parameters>
       <parameter>
         <name>Data_Path</name>
-        <default_value>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data</default_value>
+        <default_value>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\data</default_value>
         <description>Ruta a la carpeta data del proyecto</description>
       </parameter>
       <parameter>
         <name>Output_Path</name>
-        <default_value>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\resultados</default_value>
+        <default_value>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\resultados</default_value>
         <description>Ruta de salida para datos procesados</description>
       </parameter>
       <parameter>
         <name>RUTA_TODOS_DATOS</name>
-        <default_value>C:\Users\nicol\Desktop\NICO\AA_universidad\MASTER CIENCIA DE DATOS\1ER CUATRI\PREPROCESO, RECOLECCIÓN Y VISUALIZACION DE DATOS\TRABAJOS\Alejandro\PRVD\Proyecto profe 1\data\DATOS_OPEN_DATA</default_value>
+        <default_value>C:\Users\Eric\Desktop\Master\PRVD\Practicas\Practica_Final\PRVD\Proyecto profe 1\data\DATOS_OPEN_DATA</default_value>
         <description/>
       </parameter>
     </parameters>
@@ -153,7 +153,7 @@ El resultado es: parking_id, parking_name, latitude, longitude, standard_spaces,
       <fontitalic>N</fontitalic>
       <fontname>.AppleSystemUIFont</fontname>
       <fontsize>13</fontsize>
-      <height>143</height>
+      <height>156</height>
       <xloc>832</xloc>
       <yloc>48</yloc>
       <note>FLUJO 5: INTEGRACIÓN Y ENRIQUECIMIENTO
@@ -163,7 +163,7 @@ Se estandarizan todos los nombres de campos para facilitar análisis conjunto.
 Los datos integrados se exportan a CSV individuales y a un CSV consolidado
 para análisis multimodal.
 </note>
-      <width>787</width>
+      <width>801</width>
     </notepad>
     <notepad>
       <backgroundcolorblue>251</backgroundcolorblue>
@@ -179,7 +179,7 @@ para análisis multimodal.
       <fontitalic>N</fontitalic>
       <fontname>.AppleSystemUIFont</fontname>
       <fontsize>13</fontsize>
-      <height>390</height>
+      <height>421</height>
       <xloc>32</xloc>
       <yloc>1248</yloc>
       <note>FLUJO 6: Procesar datos por distritos de cantidad de viajes de cada grupo de individuos.
@@ -202,7 +202,7 @@ El cual contiene toda la información de viajes de grupos de personas por edades
 
 
 </note>
-      <width>973</width>
+      <width>997</width>
     </notepad>
   </notepads>
   <order>
@@ -3935,6 +3935,7 @@ if (zona_pernoctacion != null) {
       <key>distrito</key>
     </keys_2>
     <transform1>Ordenar por id municipio 2</transform1>
+    <transform2>eliminar duplicados</transform2>
     <attributes/>
     <GUI>
       <xloc>1072</xloc>
