@@ -112,21 +112,23 @@ Variables clave:
 Esto define los **nodos base** del sistema de transporte.
 
 ## Descripción básica de `viajes_madrid`
+```{r resumen-viajes, message=FALSE, warning=FALSE}
+library(readr)
+library(dplyr)
+library(janitor)
+library(stringr)
 
-```{r resumen-viajes}
-viajes <- viajes_raw %>% 
-  clean_names() %>% 
-  mutate(
-    personas = str_replace(personas, ",", ".") %>% as.numeric()
-  )
+# Ajusta la ruta a tu fichero si hace falta
+viajes <- read_delim("viajes_madrid.csv",
+                     delim = ";",
+                     locale = locale(decimal_mark = ","),
+                     show_col_types = FALSE) %>% 
+  clean_names()
 
-glimpse(viajes)
-
-viajes %>% 
-  count(distrito) %>% 
-  arrange(distrito) %>% 
-  head()
+# Comprobamos que personas es numérica y razonable
+summary(viajes$personas)
 ```
+
 
 Variables clave:
 
@@ -141,11 +143,22 @@ Variables clave:
 ### Indicador de intensidad de viajes por distrito
 
 Construimos un indicador sencillo de **viajes medios por persona** en cada distrito.
+Primero pasamos la categoría `numero_viajes` a un valor numérico aproximado y luego
+calculamos una media ponderada por el número de personas.
 
-```{r viajes-intensidad}
+### Indicador de viajes medios diarios por persona y distrito
+
+La variable personas se encontraba codificada con formato decimal europeo, por lo que fue necesario convertirla explícitamente a formato numérico. Asimismo, la variable numero_viajes es categórica (0, 1, 2, 2+), por lo que se transformó en una aproximación numérica asignando el valor 3 a la categoría “2+”.
+El indicador final de viajes medios por persona se calculó como una media ponderada por el número de personas en cada categoría, obteniéndose valores en torno a 2 viajes diarios por persona, coherentes con patrones conocidos de movilidad urbana.
+
+```{r viajes-intensidad, message=FALSE, warning=FALSE}
+library(dplyr)
+library(knitr)
+
 viajes_distrito <- viajes %>% 
   mutate(
-    viajes_cat = case_when(
+    # Pasamos las categorías de nº de viajes a un valor numérico aproximado
+    viajes_cat = dplyr::case_when(
       numero_viajes == "0"  ~ 0,
       numero_viajes == "1"  ~ 1,
       numero_viajes == "2"  ~ 2,
@@ -155,15 +168,26 @@ viajes_distrito <- viajes %>%
   ) %>% 
   group_by(distrito) %>% 
   summarise(
-    poblacion = max(poblacion, na.rm = TRUE),
-    viajes_totales = sum(viajes_cat * personas, na.rm = TRUE),
-    viajes_medios_por_persona = viajes_totales / poblacion,
+    # Total de personas (peso) en el distrito
+    personas_totales = sum(personas, na.rm = TRUE),
+    # Total de viajes ponderados
+    viajes_totales   = sum(viajes_cat * personas, na.rm = TRUE),
+    # Viajes medios por persona
+    viajes_medios_por_persona = viajes_totales / personas_totales,
     .groups = "drop"
   )
 
-kable(head(viajes_distrito), caption = "Indicador de viajes medios por persona y distrito")
+kable(
+  head(viajes_distrito),
+  digits = 3,
+  caption = "Viajes medios diarios por persona y distrito"
+)
+
 summary(viajes_distrito$viajes_medios_por_persona)
 ```
+
+
+El indicador de viajes medios diarios por persona presenta valores muy homogéneos entre distritos, situándose en un rango estrecho comprendido aproximadamente entre 1.98 y 2.13 viajes diarios por persona. Esta baja dispersión sugiere que, a escala distrital, los patrones de movilidad cotidiana en Madrid son relativamente uniformes, independientemente del volumen total de población o del número absoluto de desplazamientos. En particular, los distritos con mayor intensidad de viajes no necesariamente coinciden con los más poblados, lo que indica que la demanda de movilidad responde más a la estructura funcional del territorio y a la conectividad del sistema de transporte que al tamaño demográfico. Este resultado refuerza la idea de que la versatilidad multimodal y el papel estructural de ciertas zonas en la red pueden desempeñar un papel más relevante que la mera intensidad de viajes a la hora de caracterizar nodos clave del sistema de transporte urbano.
 
 # Construcción de la red multicapa
 
@@ -363,7 +387,7 @@ En esta sección generamos la visualización clave: un gráfico 3D en el que se 
 
 Para ello usamos la función `plot_multiplex3D` de `muxViz`. Se asume que `muxViz` está instalado; si no lo está, el código no fallará, pero mostrará un mensaje.
 
-```{r plot-multiplex3D, eval = False}
+```{r plot-multiplex3D, eval = FALSE}
 if (requireNamespace("muxViz", quietly = TRUE)) {
   library(muxViz)
 
@@ -829,10 +853,22 @@ kable(top_versatiles, caption = "Top 15 zonas más versátiles")
 kable(top_especializados, caption = "Top 15 zonas más especializadas")
 ```
 
-Interpretación cualitativa (a redactar en la memoria):
+Desde el punto de vista espacial, las zonas con **alta versatilidad de grado** se
+concentran en torno a los grandes intercambiadores de transporte y a las áreas más
+centrales de la ciudad. Se trata de nodos que combinan conectividad en varias capas de
+la red (metro, bus, cercanías, bicicleta pública), de modo que actúan como puntos de
+transferencia entre modos diferentes. Estas zonas tienen grados relativamente altos en
+varias capas simultáneamente y, por tanto, desempeñan un papel de “puente multimodal”
+entre distintas partes del sistema de transporte.
 
-- Zonas con **alta versatilidad**: concentran paradas de varios modos y son relevantes en varias capas.
-- Zonas **especializadas**: la conectividad se concentra en un único modo.
+En el extremo opuesto, las zonas con **baja versatilidad** tienden a estar especializadas
+en un único modo de transporte, típicamente la red de autobuses o una línea concreta de
+metro. Su grado puede ser elevado dentro de una sola capa, pero su conectividad se
+limita a ese modo, de modo que su capacidad para redistribuir flujos entre capas es
+reducida. Esta especialización puede ser eficiente en términos operativos, pero hace que
+la zona sea menos flexible ante perturbaciones que afecten a su modo dominante, ya que
+existen menos alternativas multimodales inmediatas.
+
 
 ## 3. Relación entre versatilidad e intensidad de viajes
 
@@ -848,8 +884,11 @@ versatilidad_df %>%
     y = "Versatilidad de grado"
   )
 ```
-
-Comprobamos cuántas observaciones completas hay y calculamos la correlación **solo si tiene sentido estadísticamente** (al menos 3 observaciones completas):
+En la Figura anterior se representa la relación entre la versatilidad de grado de las zonas
+y el número medio de viajes diarios por persona en su distrito. Visualmente no se aprecia
+una tendencia clara ni creciente ni decreciente, lo que ya apunta a una asociación débil
+entre ambas variables. Este resultado se confirma al calcular la correlación lineal de
+Pearson. 
 
 ```{r correlacion-versatilidad-viajes}
 datos_cor <- versatilidad_df %>% 
@@ -871,7 +910,18 @@ if (n_obs >= 3) {
 }
 ```
 
-Esto evita el error de “not enough finite observations” y hace el análisis más robusto.
+el coeficiente obtenido (0.00345433) es muy cercano a cero y no resulta estadísticamente
+significativo (p-valor elevado). 
+
+En términos prácticos, esto indica que los nodos más versátiles del sistema de transporte
+no se localizan necesariamente en los distritos con mayor intensidad de movilidad. Es
+decir, una zona puede desempeñar un papel multimodal clave (conexión entre varios modos
+y capas de la red) aun cuando su distrito no sea el que concentra más viajes por persona.
+Por tanto, la relevancia estructural de un nodo en la red multicapa no viene determinada
+únicamente por la demanda de viajes de su entorno, sino por su posición dentro de la
+topología global de la red de transporte.
+
+
 
 # Vulnerabilidad de la red de transporte
 
@@ -941,7 +991,95 @@ resultado_robustez %>%
   )
 ```
 
-Una caída rápida del tamaño de la componente gigante indica **alta vulnerabilidad** ante fallos dirigidos en nodos centrales de la capa `metro`.
+La Figura muestra la evolución del tamaño relativo de la componente gigante de la red
+agregada a medida que se eliminan progresivamente nodos de la capa de metro, siguiendo
+un criterio dirigido basado en su centralidad. Se observa una disminución aproximadamente
+monótona y casi lineal de la conectividad global, lo que indica que los nodos más centrales
+de la red de metro desempeñan un papel estructural clave en la cohesión del sistema
+multicapa.
+
+En particular, la eliminación del 20–30 % de los nodos más relevantes de la capa de metro
+reduce el tamaño de la componente gigante a alrededor del 70–75 % de su valor inicial,
+mientras que al eliminar la mitad de los nodos centrales la red pierde más del 50 % de su
+conectividad global. Este resultado pone de manifiesto que la capa de metro actúa como
+columna vertebral del sistema de transporte urbano: disrupciones severas concentradas en
+sus nodos más importantes pueden propagarse al resto de capas y provocar una
+fragmentación significativa de la red agregada.
+
+### Comparación entre fallos dirigidos y aleatorios
+
+```{r vulnerabilidad-comparacion, message=FALSE, warning=FALSE}
+set.seed(123)
+
+simular_ataque <- function(g, estrategia = c("dirigido", "aleatorio"),
+                           fracciones = seq(0, 0.5, by = 0.05)) {
+  estrategia <- match.arg(estrategia)
+  n <- vcount(g)
+  resultados <- tibble()
+  
+  if (estrategia == "dirigido") {
+    orden <- names(sort(degree(g), decreasing = TRUE))
+  } else {
+    orden <- sample(V(g)$name)
+  }
+  
+  for (f in fracciones) {
+    k <- ceiling(f * n)
+    g_tmp <- delete_vertices(g, orden[seq_len(k)])
+    gcc <- if (vcount(g_tmp) == 0) 0 else max(components(g_tmp)$csize)
+    
+    resultados <- bind_rows(
+      resultados,
+      tibble(
+        frac_eliminada = f,
+        tamano_gcc_rel = gcc / tamano_gcc_inicial,
+        estrategia = estrategia
+      )
+    )
+  }
+  resultados
+}
+
+res_dirigido  <- simular_ataque(g_agregado, "dirigido")
+res_aleatorio <- simular_ataque(g_agregado, "aleatorio")
+
+res_vuln <- bind_rows(res_dirigido, res_aleatorio)
+
+ggplot(res_vuln,
+       aes(x = frac_eliminada, y = tamano_gcc_rel, color = estrategia)) +
+  geom_line(size = 1) +
+  geom_point() +
+  theme_minimal() +
+  labs(
+    x = "Fracción de nodos eliminados",
+    y = "Tamaño relativo de la componente gigante",
+    color = "Estrategia",
+    title = "Robustez de la red: ataque dirigido vs fallo aleatorio"
+  )
+
+
+```
+
+La Figura compara la robustez de la red agregada frente a dos escenarios de disrupción:
+la eliminación dirigida de nodos altamente centrales y la eliminación aleatoria de nodos.
+Las diferencias entre ambas estrategias son claras. Para una misma fracción de nodos
+eliminados, el ataque dirigido produce una reducción mucho más acusada del tamaño de la
+componente gigante que el fallo aleatorio.
+
+Mientras que la eliminación aleatoria da lugar a una degradación gradual de la
+conectividad —manteniéndose más del 50 % de la componente gigante incluso tras eliminar
+el 50 % de los nodos—, el ataque dirigido provoca una fragmentación mucho más rápida,
+reduciendo la componente gigante a valores cercanos al 40 % para la misma fracción
+eliminada. Este comportamiento es característico de redes complejas con fuerte
+heterogeneidad estructural, que suelen ser robustas frente a fallos aleatorios pero muy
+vulnerables a ataques selectivos sobre sus nodos más importantes.
+
+En el contexto del transporte urbano, estos resultados subrayan la existencia de nodos
+críticos cuya correcta operación resulta fundamental para la resiliencia del sistema
+multicapa. La protección, monitorización y dotación de redundancias en los principales
+intercambiadores multimodales se revela, por tanto, como una estrategia clave para mitigar
+los efectos de disrupciones severas.
+
 
 # Conclusiones
 
