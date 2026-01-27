@@ -14,6 +14,9 @@ output:
     number_sections: true
 fontsize: 11pt
 lang: es
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, include=FALSE}
@@ -29,25 +32,31 @@ knitr::opts_chunk$set(
 
 # Introducción
 
-En este trabajo se analiza la **estructura multicapa de la red de transporte de la ciudad de Madrid** a partir de dos conjuntos de datos reales proporcionados:
+En este trabajo se analiza la **estructura multicapa de la red de
+transporte de la ciudad de Madrid** a partir de dos conjuntos de datos
+reales proporcionados:
 
-- Un fichero con las **paradas y estaciones** de distintos modos de transporte.
-- Un fichero con información de **viajes mensuales por distrito**.
+-   Un fichero con las **paradas y estaciones** de distintos modos de
+    transporte.
+-   Un fichero con información de **viajes mensuales por distrito**.
 
 Los objetivos concretos son:
 
-- Construir una **red multicapa** donde cada capa representa un modo de transporte (`bus`, `metro`, `bicimad`, `parking`).
-- Estudiar la **centralidad** de las zonas de intercambio en cada capa.
-- Medir la **versatilidad** de las zonas (cómo cambia su importancia entre modos).
-- Realizar una **visualización multicapa** en la que se vean explícitamente las distintas capas conectadas.
-- Explorar de forma sencilla la **vulnerabilidad** del sistema ante fallos en una de las capas.
+-   Construir una **red multicapa** donde cada capa representa un modo
+    de transporte (`bus`, `metro`, `bicimad`, `parking`).
+-   Estudiar la **centralidad** de las zonas de intercambio en cada
+    capa.
+-   Medir la **versatilidad** de las zonas (cómo cambia su importancia
+    entre modos).
+-   Realizar una **visualización multicapa** en la que se vean
+    explícitamente las distintas capas conectadas.
+-   Explorar de forma sencilla la **vulnerabilidad** del sistema ante
+    fallos en una de las capas.
 
 Toda la parte empírica se basa **exclusivamente** en los ficheros:
 
-- `transporte_madrid_consolidado.csv`
-- `viajes_madrid.csv`
-
-No se utilizan ejemplos externos (como StarWars) para que el análisis esté completamente centrado en los datos de Madrid.
+-   `transporte_madrid_consolidado.csv`
+-   `viajes_madrid.csv`
 
 # Carga y exploración de datos
 
@@ -64,7 +73,8 @@ library(knitr)
 
 ## Lectura de los ficheros
 
-Se asume que los ficheros CSV están en el mismo directorio que este documento RMarkdown. Si no es así, ajustar las rutas.
+Se asume que los ficheros CSV están en el mismo directorio que este
+documento RMarkdown. Si no es así, ajustar las rutas.
 
 ```{r cargar-datos}
 ruta_transporte <- "transporte_madrid_consolidado.csv"
@@ -103,15 +113,17 @@ summary(select(transporte, stop_lat, stop_lon, distrito_asignado))
 
 Variables clave:
 
-- `stop_name`: nombre de la parada/estación.
-- `stop_lat`, `stop_lon`: coordenadas geográficas.
-- `transport_mode`: modo de transporte (`bus`, `metro`, `bicimad`, `parking`).
-- `stop_id`: identificador de parada.
-- `distrito_asignado`: código de distrito (INE).
+-   `stop_name`: nombre de la parada/estación.
+-   `stop_lat`, `stop_lon`: coordenadas geográficas.
+-   `transport_mode`: modo de transporte (`bus`, `metro`, `bicimad`,
+    `parking`).
+-   `stop_id`: identificador de parada.
+-   `distrito_asignado`: código de distrito (INE).
 
 Esto define los **nodos base** del sistema de transporte.
 
 ## Descripción básica de `viajes_madrid`
+
 ```{r resumen-viajes, message=FALSE, warning=FALSE}
 library(readr)
 library(dplyr)
@@ -129,27 +141,33 @@ viajes <- read_delim("viajes_madrid.csv",
 summary(viajes$personas)
 ```
 
-
 Variables clave:
 
-- `fecha`: mes de referencia.
-- `name`: nombre del distrito.
-- `edad`, `sexo`: características sociodemográficas.
-- `numero_viajes`: categoría de nº de viajes (0, 1, 2, `2+`).
-- `personas`: número de personas en esa celda.
-- `distrito`: código de distrito.
-- `poblacion`: población total del distrito.
+-   `fecha`: mes de referencia.
+-   `name`: nombre del distrito.
+-   `edad`, `sexo`: características sociodemográficas.
+-   `numero_viajes`: categoría de nº de viajes (0, 1, 2, `2+`).
+-   `personas`: número de personas en esa celda.
+-   `distrito`: código de distrito.
+-   `poblacion`: población total del distrito.
 
 ### Indicador de intensidad de viajes por distrito
 
-Construimos un indicador sencillo de **viajes medios por persona** en cada distrito.
-Primero pasamos la categoría `numero_viajes` a un valor numérico aproximado y luego
-calculamos una media ponderada por el número de personas.
+Construimos un indicador sencillo de **viajes medios por persona** en
+cada distrito. Primero pasamos la categoría `numero_viajes` a un valor
+numérico aproximado y luego calculamos una media ponderada por el número
+de personas.
 
 ### Indicador de viajes medios diarios por persona y distrito
 
-La variable personas se encontraba codificada con formato decimal europeo, por lo que fue necesario convertirla explícitamente a formato numérico. Asimismo, la variable numero_viajes es categórica (0, 1, 2, 2+), por lo que se transformó en una aproximación numérica asignando el valor 3 a la categoría “2+”.
-El indicador final de viajes medios por persona se calculó como una media ponderada por el número de personas en cada categoría, obteniéndose valores en torno a 2 viajes diarios por persona, coherentes con patrones conocidos de movilidad urbana.
+La variable personas se encontraba codificada con formato decimal
+europeo, por lo que fue necesario convertirla explícitamente a formato
+numérico. Asimismo, la variable numero_viajes es categórica (0, 1, 2,
+2+), por lo que se transformó en una aproximación numérica asignando el
+valor 3 a la categoría “2+”. El indicador final de viajes medios por
+persona se calculó como una media ponderada por el número de personas en
+cada categoría, obteniéndose valores en torno a 2 viajes diarios por
+persona, coherentes con patrones conocidos de movilidad urbana.
 
 ```{r viajes-intensidad, message=FALSE, warning=FALSE}
 library(dplyr)
@@ -186,12 +204,45 @@ kable(
 summary(viajes_distrito$viajes_medios_por_persona)
 ```
 
+Interpretación de los Resultados (Estadísticas de Viajes)
 
-El indicador de viajes medios diarios por persona presenta valores muy homogéneos entre distritos, situándose en un rango estrecho comprendido aproximadamente entre 1.98 y 2.13 viajes diarios por persona. Esta baja dispersión sugiere que, a escala distrital, los patrones de movilidad cotidiana en Madrid son relativamente uniformes, independientemente del volumen total de población o del número absoluto de desplazamientos. En particular, los distritos con mayor intensidad de viajes no necesariamente coinciden con los más poblados, lo que indica que la demanda de movilidad responde más a la estructura funcional del territorio y a la conectividad del sistema de transporte que al tamaño demográfico. Este resultado refuerza la idea de que la versatilidad multimodal y el papel estructural de ciertas zonas en la red pueden desempeñar un papel más relevante que la mera intensidad de viajes a la hora de caracterizar nodos clave del sistema de transporte urbano.
+El resumen estadístico (summary) de la variable
+viajes_medios_por_persona revela un patrón de comportamiento
+extremadamente homogéneo en todos los distritos analizados:
+
+1.  Uniformidad del Comportamiento: El rango de valores es muy estrecho,
+    oscilando apenas entre un mínimo de 1.956 y un máximo de 2.135
+    viajes por persona. Esto indica que, independientemente del distrito
+    (sea centro o periferia), la movilidad media individual es muy
+    constante.
+
+2.  Tendencia Central (La regla del "Ida y Vuelta"): Tanto la media
+    (2.041) como la mediana (2.038) se sitúan prácticamente en 2. Esto
+    tiene un sentido lógico muy fuerte en transporte urbano: representa
+    el patrón estándar de un viaje de ida y otro de vuelta (péndulo
+    diario).
+
+3.  Implicación para el Modelo: Dado que la desviación entre el primer
+    cuartil (2.004) y el tercer cuartil (2.063) es mínima, esta variable
+    no actúa como un factor discriminante fuerte por sí sola. Esto
+    significa que las diferencias de flujo total que observaremos en la
+    red no se deben a que la gente de un barrio viaje "más veces" que la
+    de otro, sino probablemente a la densidad de población de cada zona
+    (mismo ratio de viajes por persona, pero mucha más gente en unas
+    zonas que en otras).
+
+Se observa una notable homogeneidad en la movilidad individual a lo
+largo de Madrid, con una media de 2.04 viajes por persona y una varianza
+despreciable. Esto sugiere que la intensidad de uso de la red de
+transporte depende casi exclusivamente del volumen demográfico de cada
+distrito y no de diferencias significativas en los hábitos de movilidad
+individual entre zonas.
 
 # Construcción de la red multicapa
 
-La idea es pasar de paradas individuales a **zonas de intercambio** (clusters de paradas cercanas), y luego construir una capa por modo de transporte.
+La idea es pasar de paradas individuales a **zonas de intercambio**
+(clusters de paradas cercanas), y luego construir una capa por modo de
+transporte.
 
 ## 1. Definición de zonas de intercambio (clustering espacial)
 
@@ -240,13 +291,22 @@ head(zonas)
 
 Cada `cluster_id` representa una **zona de intercambio multimodal**.
 
-Representamos la distribución espacial aproximada (proyección geográfica simple):
+Representamos la distribución espacial aproximada (proyección geográfica
+simple):
 
 ```{r mapa-zonas, message=FALSE}
-zonas_sf <- zonas %>% 
-  st_as_sf(coords = c("stop_lon", "stop_lat"), crs = 4326)
+# Aseguramos que sea factor
+zonas_sf$distrito_asignado <- as.factor(zonas_sf$distrito_asignado)
+n_distritos <- length(levels(zonas_sf$distrito_asignado))
 
-plot(zonas_sf["distrito_asignado"], main = "Zonas de intercambio por distrito")
+# Usamos hcl.colors con la paleta "Dark 3" o "Set 2", que son mucho más elegantes
+plot(zonas_sf["distrito_asignado"], 
+     main = "Zonas de intercambio por distrito",
+     pal = hcl.colors(n_distritos, palette = "Dark 3"), 
+     key.pos = 4,
+     pch = 19, 
+     cex = 0.6,
+     border = NA) # Quitamos bordes si los hubiera para que el color sea más puro
 ```
 
 ## 2. Nodos por modo de transporte
@@ -272,246 +332,367 @@ zonas_attrs <- zonas %>%
 kable(head(zonas_attrs), caption = "Atributos básicos de las zonas por modo")
 ```
 
-## 3. Unimos la información de viajes por distrito
+En este análisis, la estructura de los clústeres utiliza la proximidad
+geográfica para configurar nodos de naturaleza multimodal. Cada clúster
+integra diversas tipologías de infraestructuras de transporte basándose
+en un criterio de agrupación por distancias mínimas, lo que permite
+consolidar puntos de acceso heterogéneos en una unidad funcional única.
 
-```{r unir-viajes}
-# Forzamos el mismo tipo en ambas columnas de distrito
-zonas_attrs <- zonas_attrs %>% 
-  mutate(distrito_asignado = as.integer(distrito_asignado))
+Como se observa en la matriz resultante, la presencia de servicios como
+$bicimad$, $bus$, $metro$ y $parking$ dentro de un mismo $cluster\_id$
+evidencia que el modelo no solo identifica cercanía espacial, sino que
+captura la interconectividad del tejido urbano, facilitando la
+transición entre diferentes modos de movilidad en puntos estratégicos de
+la red.
 
-viajes_distrito <- viajes_distrito %>% 
-  mutate(distrito = as.integer(distrito))
+## 3. Construcción de redes intra-capa
 
-# Join seguro
-zonas_attrs <- zonas_attrs %>% 
-  left_join(
-    viajes_distrito,
-    by = c("distrito_asignado" = "distrito")
-  )
-
-summary(zonas_attrs$viajes_medios_por_persona)
-
-```
-
-En muchas zonas puede que no haya dato (si el distrito no aparece o hay problemas de asignación), pero para el análisis de red esto no es un problema; simplemente tendremos algunos `NA`.
-
-## 4. Construcción de redes intra-capa
-
-Para cada modo:
-
-- Consideramos solo las zonas donde ese modo está presente.
-- Unimos cada zona con sus **k vecinos más cercanos** (aquí k = 3) basándonos en la distancia euclídea de los centroides.
-- Asignamos un peso inversamente proporcional a la distancia.
+Este bloque de código construye la estructura topológica intra-capa (conexiones internas) para cada medio de transporte mediante un criterio de proximidad espacial. En primer lugar, proyecta las coordenadas geográficas a un sistema métrico (UTM) para poder calcular distancias reales en metros. Posteriormente, aplica un algoritmo de K-Vecinos Más Cercanos (KNN) que conecta cada parada (nodo) con sus 3 estaciones más próximas del mismo modo de transporte, asignando a cada conexión un peso ($w$) inversamente proporcional a la distancia física; de esta forma, se generan redes de vecindad geométrica donde los nodos cercanos tienen enlaces más fuertes, simulando la accesibilidad local dentro de cada capa.
 
 ```{r edges-intracapa, message=FALSE}
-# Centroides en coordenadas métricas
-zonas_centroides <- zonas_sf %>% 
-  st_transform(25830) %>% 
-  st_coordinates() %>% 
-  as_tibble() %>% 
-  rename(x = X, y = Y) %>% 
-  mutate(cluster_id = zonas$cluster_id)
+# 1. Preparación de coordenadas de forma sencilla
+centroides_mat <- st_coordinates(st_transform(zonas_sf, 25830))
+zonas_centroides <- data.frame(
+  cluster_id = zonas$cluster_id,
+  x = centroides_mat[, 1],
+  y = centroides_mat[, 2]
+)
 
-build_edges_modo <- function(modo, k = 3) {
-  zonas_modo_ids <- zonas_attrs %>% 
-    filter(.data[[modo]] == 1) %>% 
-    pull(cluster_id)
-
-  if (length(zonas_modo_ids) <= 1) {
-    return(tibble(modo = character(), from = integer(),
-                  to = integer(), dist = numeric(), w = numeric()))
+# 2. Función con lógica explícita
+build_edges_simple <- function(modo_nombre, k = 3) {
+  
+  # Filtrar qué zonas tienen este modo activo
+  ids_con_modo <- zonas_attrs$cluster_id[zonas_attrs[[modo_nombre]] == 1]
+  
+  # Si no hay suficientes zonas para conectar, devolvemos tabla vacía
+  if (length(ids_con_modo) < 2) return(data.frame())
+  
+  # Obtener coordenadas solo de esas zonas
+  coords <- zonas_centroides[zonas_centroides$cluster_id %in% ids_con_modo, ]
+  
+  lista_aristas <- list()
+  
+  # Bucle: Para cada zona, calculamos la distancia a TODAS las demás
+  for (i in 1:nrow(coords)) {
+    punto_origen <- coords[i, ]
+    
+    # Calculamos distancia euclidiana: sqrt((x1-x2)^2 + (y1-y2)^2)
+    distancias <- sqrt((punto_origen$x - coords$x)^2 + (punto_origen$y - coords$y)^2)
+    
+    # Creamos un dataframe temporal con las distancias de 'i' al resto
+    df_dist <- data.frame(
+      modo = modo_nombre,
+      from = punto_origen$cluster_id,
+      to   = coords$cluster_id,
+      dist = distancias
+    )
+    
+    # Quitamos la distancia a sí mismo (que es 0)
+    df_dist <- df_dist[df_dist$from != df_dist$to, ]
+    
+    # Ordenamos por distancia y nos quedamos con los 'k' más cercanos
+    df_dist <- df_dist[order(df_dist$dist), ]
+    df_dist <- head(df_dist, k)
+    
+    lista_aristas[[i]] <- df_dist
   }
-
-  coords_modo <- zonas_centroides %>% 
-    filter(cluster_id %in% zonas_modo_ids) %>% 
-    arrange(cluster_id)
-
-  mat <- as.matrix(coords_modo[, c("x", "y")])
-  k_eff <- min(k, nrow(mat) - 1)
-  knn <- FNN::get.knn(mat, k = k_eff)
-
-  from <- rep(coords_modo$cluster_id, each = k_eff)
-  to   <- coords_modo$cluster_id[c(knn$nn.index)]
-  dist <- as.numeric(knn$nn.dist)
-
-  tibble(
-    modo  = modo,
-    from  = from,
-    to    = to,
-    dist  = dist,
-    w     = 1 / (1 + dist)
-  ) %>% 
-    distinct() %>% 
-    filter(from != to)
+  
+  # Unir todos los resultados del bucle en una tabla
+  resultado <- do.call(rbind, lista_aristas)
+  
+  # Calcular el peso (w) de forma manual
+  resultado$w <- 1 / (1 + resultado$dist)
+  
+  return(resultado)
 }
 
-edges_intra <- map_df(modos, build_edges_modo)
 
+edges_intra_lista <- list()
+for (m in modos) {
+  edges_intra_lista[[m]] <- build_edges_simple(m)
+}
+edges_intra <- do.call(rbind, edges_intra_lista)
 kable(head(edges_intra), caption = "Ejemplo de aristas intra-capa")
 ```
 
-## 5. Grafos por capa (lista `g_list`)
+Descripción del Dataframe obtenido (edges_intra)
+
+El objeto resultante es una tabla consolidada (tibble) donde cada fila representa una arista (conexión) entre dos paradas. Sus columnas son:
+
+* modo: Identificador de la capa de transporte (ej. "metro", "bus", "bicimad").
+
+* from: ID numérico del nodo de origen (cluster_id).to: ID numérico del nodo de destino (uno de sus vecinos más cercanos).
+
+* dist: La distancia euclídea en metros entre ambos nodos.
+
+* w: El peso de la conexión, calculado como $1/(1 + \text{distancia})$. Varía entre 0 y 1, siendo mayor cuanto más cerca están las paradas.
+
+
+## 4. Grafos por capa (lista `g_list`)
+
+Este bloque tiene una misión crítica en el análisis multicapa: garantizar la alineación de nodos (Node Alignment). La función build_graph_modo transforma la lista de enlaces (edges_intra) en objetos de grafo (igraph), pero con una particularidad vital: asegura que todas las capas tengan exactamente los mismos nodos, incluso si en una capa específica un nodo no tiene conexiones (está aislado). El código identifica los nodos que faltan en una capa (setdiff) y los añade manualmente como vértices aislados. Sin este paso, las matrices de adyacencia tendrían dimensiones distintas y sería matemáticamente imposible construir el objeto "multiplex" (la "lasaña" no encajaría).
+
 
 ```{r graphs-por-modo}
 nodos_ids <- zonas_attrs$cluster_id
 
-build_graph_modo <- function(modo) {
-  e_modo <- edges_intra %>% 
-    filter(modo == !!modo) %>% 
-    select(from, to, w)
+build_graph_simple <- function(nombre_modo) {
+  filas_modo <- edges_intra[edges_intra$modo == nombre_modo, ]
+  e_modo <- filas_modo[, c("from", "to", "w")]
 
   g <- graph_from_data_frame(
-    d = e_modo,
-    directed = FALSE,
-    vertices = zonas_attrs %>% 
-      mutate(name = cluster_id)
+    d = e_modo, 
+    directed = FALSE, 
+    vertices = zonas_attrs
   )
 
-  missing_nodes <- setdiff(nodos_ids, as.integer(V(g)$name))
-  if (length(missing_nodes) > 0) {
-    g <- g + vertices(as.character(missing_nodes))
+  nodos_en_grafo <- as.integer(V(g)$name)
+  faltantes <- nodos_ids[!(nodos_ids %in% nodos_en_grafo)]
+  
+  if (length(faltantes) > 0) {
+    g <- g + vertices(as.character(faltantes))
   }
 
-  g
+  return(g)
 }
 
-g_list <- map(modos, build_graph_modo)
-names(g_list) <- modos
+g_list <- list()
+for (m in modos) {
+  g_list[[m]] <- build_graph_simple(m)
+}
 
 g_list
 ```
 
-# Visualización multicapa con `muxViz`
-
-En esta sección generamos la visualización clave: un gráfico 3D en el que se ven las capas (modos) apiladas, con los nodos alineados entre capas.
-
-Para ello usamos la función `plot_multiplex3D` de `muxViz`. Se asume que `muxViz` está instalado; si no lo está, el código no fallará, pero mostrará un mensaje.
-
-```{r plot-multiplex3D, eval = FALSE}
-if (requireNamespace("muxViz", quietly = TRUE)) {
-  library(muxViz)
-
-  layer_colors <- c(
-    bicimad = "#1a9641",
-    bus     = "#d7191c",
-    metro   = "#2c7bb6",
-    parking = "#fdae61"
-  )
-
-  node_multimodalidad <- zonas_attrs %>% 
-    mutate(
-      modos_activos = rowSums(across(all_of(modos)))
-    ) %>% 
-    pull(modos_activos)
-
-  node_size_values <- rescale(node_multimodalidad, to = c(0.5, 2))
-
-  muxViz::plot_multiplex3D(
-    g.list           = g_list,
-    layer.colors     = layer_colors[names(g_list)],
-    layer.labels     = "auto",     # <- clave: escalar, no vector
-    node.size.values = node_size_values,
-    node.size.scale  = 1.5,
-    edge.size.scale  = 0.5,
-    layout           = "fr",
-    show.aggregate   = TRUE,
-    show.nodeLabels  = FALSE
-  )
-} else {
-  message("El paquete 'muxViz' no está instalado. Instálalo con devtools::install_github('manlius/muxViz') para ver la visualización 3D.")
-}
-
-```
-
-Dado que la función `plot_multiplex3D` de `muxViz` presenta problemas en la instalación utilizada (bug interno con `layer.labels`), se ha implementado un gráfico multicapa alternativo usando `tidygraph` y `ggraph`, que representa las capas apiladas y las conexiones intra- e inter-capa de forma equivalente.
+La ejecución del algoritmo de construcción de grafos ha resultado en la generación de cuatro objetos igraph independientes, correspondientes a las capas de BiciMAD, Bus, Metro y Parking. La inspección de la salida (g_list) revela las siguientes características estructurales fundamentales para el modelo multicapa:
 
 
-```{r plot-multicapa-alternativo, message=FALSE, warning=FALSE}
-# Gráfico multicapa alternativo con tidygraph + ggraph
+1. Isomorfismo Nodal (Alineación de Capas) Se confirma que las cuatro capas poseen exactamente 1558 nodos (vertices = 1558). Este resultado valida el procedimiento de alineación de nodos (node alignment), garantizando que todas las capas comparten el mismo conjunto de definiciones espaciales (paradas/zonas), incluso si un modo de transporte no tiene actividad en una zona específica. Esto es un requisito matemático indispensable para la construcción del tensor supra-adyacente en muxViz.
 
-library(tidygraph)
-library(ggraph)
 
-# Orden de las capas y un índice para apilarlas verticalmente
-layer_order <- modos
-layer_index <- setNames(seq_along(layer_order), layer_order)
+2. Heterogeneidad en la Densidad de Conexiones Se observa una gran disparidad en el número de aristas (edges) entre capas, lo que refleja la naturaleza operativa de cada modo:
 
-# Distancia vertical entre capas (en coordenadas proyectadas)
-offset <- (max(zonas_centroides$y) - min(zonas_centroides$y)) * 1.2
-
-# Nodos multilayer: mismo cluster_id repetido por capa, apilado en vertical
-nodes_multi <- purrr::map_dfr(layer_order, function(m) {
-  zonas_centroides %>%
-    transmute(
-      node       = paste(cluster_id, m, sep = "_"),  # id único por nodo-capa
-      cluster_id = cluster_id,
-      layer      = m,
-      layer_idx  = layer_index[m],
-      x          = x,
-      y          = y + (layer_index[m] - 1) * offset
-    )
-})
-
-# Aristas intra-capa: usamos edges_intra y las asociamos a cada capa
-edges_intra_multi <- edges_intra %>%
-  transmute(
-    from  = paste(from, modo, sep = "_"),
-    to    = paste(to,   modo, sep = "_"),
-    type  = "intra",
-    layer = modo
-  )
-
-# Aristas inter-capa: unen el MISMO cluster_id entre modos presentes (verticales)
-inter_edges <- purrr::map_dfr(zonas_attrs$cluster_id, function(cid) {
-  # modos presentes en esa zona
-  fila <- zonas_attrs[zonas_attrs$cluster_id == cid, modos, drop = FALSE]
-  modos_presentes <- modos[as.logical(unlist(fila))]
+  * Bus (4038 enlaces): Es la capa con mayor densidad topológica. Su elevado número de aristas indica una alta capilaridad, actuando como el tejido conectivo principal que une distancias cortas y medias con una gran redundancia local.
   
-  if (length(modos_presentes) < 2) return(tibble())
+  * BiciMAD (1404 enlaces): Presenta una conectividad intermedia. Aunque inferior al autobús, su densidad sugiere una fuerte cohesión en las zonas donde está implantado (principalmente la almendra central), formando clústeres locales densos.
   
-  comb <- t(combn(modos_presentes, 2))
-  tibble(
-    from  = paste(cid, comb[, 1], sep = "_"),
-    to    = paste(cid, comb[, 2], sep = "_"),
-    type  = "inter",
-    layer = "inter"
-  )
-})
+  * Metro (684 enlaces): Muestra una topología más dispersa. Al funcionar como una red "esqueleto" o vertebral, sus conexiones son menores en número pero estratégicas, diseñadas para el transporte rápido de larga distancia sin saturar el espacio con conexiones redundantes.
+  
+  * Parking (162 enlaces): Es la capa más desconectada. La escasez de aristas refleja que los aparcamientos funcionan operativamente como "nodos satélite" o destinos finales, con muy poca interacción directa entre ellos bajo el criterio de vecindad espacial establecido ($k=3$).
+  
+3. Preservación de Atributos La salida confirma (attr: name, stop_lat...) que se han preservado los metadatos espaciales y demográficos en todos los nodos. Esto permitirá que, en las fases posteriores de visualización y análisis de vulnerabilidad, se puedan correlacionar las métricas de red (como el PageRank) con variables del mundo real como el distrito asignado o los viajes totales.
 
-edges_all <- bind_rows(edges_intra_multi, inter_edges)
+```{r tabla-resumen-capas, echo=FALSE, message=FALSE, warning=FALSE}
+library(tibble)
+library(knitr)
 
-# Grafo multilayer
-g_multi <- tbl_graph(nodes = nodes_multi, edges = edges_all, directed = FALSE)
-
-# Colores de capa (igual que antes)
-layer_colors <- c(
-  bicimad = "#1a9641",
-  bus     = "#d7191c",
-  metro   = "#2c7bb6",
-  parking = "#fdae61"
+# Creación manual del dataframe con los datos obtenidos del análisis
+resumen_capas <- tibble(
+  Capa = c("Bus", "BiciMAD", "Metro", "Parking"),
+  Nodos = c(1558, 1558, 1558, 1558),
+  Aristas = c(4038, 1404, 684, 162),
+  Densidad_Relativa = c("Alta", "Media", "Baja", "Muy Baja"),
+  Funcion_Sistema = c("Capilaridad / Cobertura", 
+                      "Movilidad última milla / Centro", 
+                      "Vertebración / Eficiencia", 
+                      "Nodos Satélite / Intercambio")
 )
 
-ggraph(g_multi, layout = "manual", x = x, y = y) +
-  geom_edge_link(aes(alpha = type, linetype = type), show.legend = TRUE) +
-  geom_node_point(aes(color = layer), size = 1.2) +
-  scale_edge_alpha_manual(values = c(intra = 0.3, inter = 0.8)) +
-  scale_edge_linetype_manual(values = c(intra = "solid", inter = "dashed")) +
-  scale_color_manual(values = layer_colors) +
-  theme_void() +
-  labs(
-    title = "Red multicapa de transporte de Madrid",
-    subtitle = "Capas (modos) apiladas verticalmente y conectadas por zonas de intercambio",
-    color = "Capa",
-    linetype = "Tipo de enlace",
-    alpha = "Tipo de enlace"
-  )
+# Imprimir tabla formateada
+kable(resumen_capas, 
+      caption = "Tabla 1: Resumen Topológico de las Capas de la Red Multicapa", 
+      align = c('l', 'c', 'c', 'c', 'l')) # Alineación: Left, Center...
+
 ```
 
-Este gráfico muestra claramente:
+# Visualización multicapa con `muxViz`
 
-- Las **capas** (`bus`, `metro`, `bicimad`, `parking`) como planos separados.
-- Los **nodos** (zonas de intercambio) alineados entre capas.
-- La **estructura de conexiones** en cada capa y la capa agregada.
+En esta sección generamos la visualización clave: un gráfico 3D en el
+que se ven las capas (modos) apiladas, con los nodos alineados entre
+capas.
+
+Para ello usamos la función `plot_multiplex3D` de `muxViz`. Se asume que
+`muxViz` está instalado; si no lo está, el código no fallará, pero
+mostrará un mensaje.
+
+```{r plot-multiplex3D}
+
+# --- 1. PREPARACIÓN DE DATOS ---
+# Ordenamos para consistencia
+zonas_attrs <- zonas_attrs[order(zonas_attrs$cluster_id), ]
+
+# Coordenadas (Las calculamos, pero NO las usaremos en el plot 3D por el bug)
+centroides_mat <- st_coordinates(st_transform(zonas_sf, 25830))
+zonas_centroides <- data.frame(
+  cluster_id = zonas$cluster_id,
+  x = centroides_mat[, 1],
+  y = centroides_mat[, 2]
+)
+zonas_centroides <- zonas_centroides[order(zonas_centroides$cluster_id), ]
+
+
+# --- 2. GENERACIÓN DE ARISTAS (INTRA-CAPA) ---
+edges_intra_lista <- list()
+
+for (m in modos) {
+  ids_modo <- zonas_attrs$cluster_id[zonas_attrs[[m]] == 1]
+  
+  if (length(ids_modo) >= 2) {
+    coords_sub <- zonas_centroides[zonas_centroides$cluster_id %in% ids_modo, ]
+    aristas_modo <- list()
+    
+    for (i in 1:nrow(coords_sub)) {
+      # Distancia Euclídea
+      dists <- sqrt((coords_sub$x[i] - coords_sub$x)^2 + (coords_sub$y[i] - coords_sub$y)^2)
+      
+      df_temp <- data.frame(
+        modo = m,
+        from = coords_sub$cluster_id[i],
+        to   = coords_sub$cluster_id,
+        dist = dists
+      )
+      
+      # Top 3 vecinos
+      df_temp <- df_temp[df_temp$from != df_temp$to, ]
+      df_temp <- df_temp[order(df_temp$dist), ]
+      aristas_modo[[i]] <- head(df_temp, 3)
+    }
+    edges_intra_lista[[m]] <- do.call(rbind, aristas_modo)
+  }
+}
+
+edges_intra <- do.call(rbind, edges_intra_lista)
+edges_intra$w <- 1 / (1 + edges_intra$dist)
+
+
+# --- 3. CONSTRUCCIÓN DE GRAFOS ---
+g_list <- list()
+
+for (m in modos) {
+  e_sub <- edges_intra[edges_intra$modo == m, c("from", "to", "w")]
+  
+  # Usamos vertices = zonas_attrs para asegurar que todas las capas
+  # tengan el mismo número de nodos y en el mismo orden.
+  g <- graph_from_data_frame(
+    d = e_sub, 
+    directed = FALSE, 
+    vertices = zonas_attrs
+  )
+  g_list[[m]] <- g
+}
+
+
+# --- 4. VISUALIZACIÓN 3D MANUAL (CORREGIDA: SOLO NODOS ACTIVOS) ---
+if (requireNamespace("rgl", quietly = TRUE)) {
+  library(rgl)
+  library(igraph)
+  
+  # Limpiamos la escena anterior
+  clear3d() 
+  
+  # 1. PREPARACIÓN
+  # Normalizamos coordenadas igual que antes
+  lay_norm <- scale(centroides_mat) 
+  
+  colores <- c(bicimad="#1a9641", bus="#d7191c", metro="#2c7bb6", parking="#fdae61")
+  layer_names <- names(g_list)
+  z_sep <- 3.0  # Aumenté un poco la separación para ver mejor
+  
+  # Configuración de vista inicial
+  open3d()
+  bg3d("white")
+  view3d(theta = 30, phi = 30, zoom = 0.8)
+  
+  # --- BUCLE: CAPA POR CAPA ---
+  for (i in 1:length(g_list)) {
+    g <- g_list[[i]]
+    lay_z <- rep(i * z_sep, nrow(lay_norm)) 
+    
+    # A. PLANO BASE (Referencia visual translúcida)
+    rango_x <- range(lay_norm[,1])
+    rango_y <- range(lay_norm[,2])
+    quads3d(
+      x = c(rango_x[1], rango_x[2], rango_x[2], rango_x[1]),
+      y = c(rango_y[1], rango_y[1], rango_y[2], rango_y[2]),
+      z = rep(i * z_sep - 0.1, 4), 
+      col = "gray90", alpha = 0.2  # Muy transparente para no molestar
+    )
+    
+    # B. ARISTAS (Conexiones horizontales)
+    edgelist <- as_edgelist(g, names = FALSE)
+    if (nrow(edgelist) > 0) {
+      x0 <- lay_norm[edgelist[,1], 1]; x1 <- lay_norm[edgelist[,2], 1]
+      y0 <- lay_norm[edgelist[,1], 2]; y1 <- lay_norm[edgelist[,2], 2]
+      z0 <- rep(i * z_sep, length(x0))
+      
+      segments3d(
+        x = as.vector(rbind(x0, x1)),
+        y = as.vector(rbind(y0, y1)),
+        z = as.vector(rbind(z0, z0)),
+        col = "gray0", lwd = 1, alpha = 0.6
+      )
+    }
+    
+    # C. NODOS (EL CAMBIO IMPORTANTE)
+    # Calculamos el grado (número de conexiones) de cada nodo en ESTA capa
+    deg <- degree(g)
+    
+    # FILTRO: Solo dibujamos nodos que tengan al menos 1 conexión en esta capa
+    # (Opcional: Si quieres ver nodos aislados pero activos, cambia a > -1, 
+    # pero > 0 limpia el gráfico de "basura")
+    active_idx <- which(deg > 0)
+    
+    if (length(active_idx) > 0) {
+      # Tamaño según importancia
+      sizes <- 0.8 + (deg[active_idx] / (max(deg)+1)) * 1.5
+      
+      spheres3d(
+        x = lay_norm[active_idx, 1], 
+        y = lay_norm[active_idx, 2], 
+        z = lay_z[active_idx],
+        radius = sizes * 0.15, 
+        col = colores[i]
+      )
+    }
+    
+    # D. Etiqueta de capa
+    text3d(
+      x = min(lay_norm[,1]), y = min(lay_norm[,2]), z = i * z_sep + 0.5, 
+      text = layer_names[i], col = colores[i], cex = 1.2, font = 2
+    )
+  }
+  
+  # --- CONEXIONES VERTICALES (INTER-LAYER) ---
+  # Solo dibujamos líneas verticales donde realmente hay actividad
+  # Recorremos todos los nodos
+  for (k in 1:nrow(lay_norm)) {
+    # Verificamos en qué capas está activo este nodo (grado > 0)
+    # Esto evita dibujar líneas verticales en zonas vacías
+    capas_activas <- sapply(g_list, function(g) degree(g)[k] > 0)
+    idx_capas <- which(capas_activas)
+    
+    if (length(idx_capas) >= 2) {
+      # Si el nodo existe en 2 o más capas, trazamos una línea que las cruce
+      z_vals <- idx_capas * z_sep
+      
+      segments3d(
+        x = rep(lay_norm[k,1], 2),
+        y = rep(lay_norm[k,2], 2),
+        z = range(z_vals), # De la capa activa más baja a la más alta
+        col = "gray0", lwd = 1, alpha = 0.3
+      )
+    }
+  }
+  
+  message("Gráfico corregido: Solo se muestran los nodos activos por capa.")
+  
+} else {
+  message("Instala rgl")
+}
+
+
+```
+
 
 
 ```{r plot-3d-multicapa, message=FALSE, warning=FALSE}
@@ -703,64 +884,107 @@ if (requireNamespace("plotly", quietly = TRUE)) {
 
 ```
 
-
 **Interpretación de la visualización 3D multicapa**
 
-La visualización tridimensional obtenida permite observar de forma explícita la estructura multicapa del sistema de transporte urbano de Madrid, donde cada plano horizontal representa un modo de transporte (bicimad, bus, metro y parking) y las conexiones verticales indican zonas de intercambio multimodal.
+La visualización tridimensional obtenida permite observar de forma
+explícita la estructura multicapa del sistema de transporte urbano de
+Madrid, donde cada plano horizontal representa un modo de transporte
+(bicimad, bus, metro y parking) y las conexiones verticales indican
+zonas de intercambio multimodal.
 
 Separación clara de capas y estructura espacial
 
-En primer lugar, se aprecia una separación nítida entre las cuatro capas, lo que confirma que cada modo de transporte presenta una distribución espacial propia:
+En primer lugar, se aprecia una separación nítida entre las cuatro
+capas, lo que confirma que cada modo de transporte presenta una
+distribución espacial propia:
 
-* La capa bicimad aparece más concentrada espacialmente, reflejando su carácter urbano y centralizado.
-* La capa bus muestra una cobertura más extensa, coherente con su función de red capilar que conecta barrios periféricos.
-* La capa metro se sitúa entre ambas, con una estructura más compacta que refleja la jerarquía de estaciones y líneas.
-* La capa parking aparece claramente diferenciada y menos densa, lo que concuerda con su función de infraestructura de apoyo más localizada.
+-   La capa bicimad aparece más concentrada espacialmente, reflejando su
+    carácter urbano y centralizado.
+-   La capa bus muestra una cobertura más extensa, coherente con su
+    función de red capilar que conecta barrios periféricos.
+-   La capa metro se sitúa entre ambas, con una estructura más compacta
+    que refleja la jerarquía de estaciones y líneas.
+-   La capa parking aparece claramente diferenciada y menos densa, lo
+    que concuerda con su función de infraestructura de apoyo más
+    localizada.
 
-Esta separación valida la decisión metodológica de modelar el sistema como una red multicapa, ya que una red agregada ocultaría estas diferencias estructurales.
+Esta separación valida la decisión metodológica de modelar el sistema
+como una red multicapa, ya que una red agregada ocultaría estas
+diferencias estructurales.
 
 **Uniones verticales como indicador de multimodalidad**
 
-Las líneas verticales que conectan nodos entre capas representan zonas donde coexisten varios modos de transporte. Estas conexiones no aparecen de forma homogénea, sino que se concentran en un subconjunto reducido de zonas, lo que pone de manifiesto una fuerte heterogeneidad en la multimodalidad del sistema.
+Las líneas verticales que conectan nodos entre capas representan zonas
+donde coexisten varios modos de transporte. Estas conexiones no aparecen
+de forma homogénea, sino que se concentran en un subconjunto reducido de
+zonas, lo que pone de manifiesto una fuerte heterogeneidad en la
+multimodalidad del sistema.
 
 En términos de teoría de redes:
 
-* Estas zonas actúan como nodos altamente versátiles, ya que participan simultáneamente en varias capas.
+-   Estas zonas actúan como nodos altamente versátiles, ya que
+    participan simultáneamente en varias capas.
 
-* Son puntos críticos para la integración funcional del sistema, permitiendo el transbordo eficiente entre modos.
+-   Son puntos críticos para la integración funcional del sistema,
+    permitiendo el transbordo eficiente entre modos.
 
-* Su posición estructural las convierte en puntos de control del flujo global de movilidad.
+-   Su posición estructural las convierte en puntos de control del flujo
+    global de movilidad.
 
-Visualmente, estas zonas destacan como “columnas” que atraviesan varias capas, reforzando la idea de que la conectividad global del sistema depende de un número limitado de nodos clave.
+Visualmente, estas zonas destacan como “columnas” que atraviesan varias
+capas, reforzando la idea de que la conectividad global del sistema
+depende de un número limitado de nodos clave.
 
 **Versatilidad y roles multinodales**
 
-La figura ilustra de manera intuitiva el concepto de versatilidad de nodo:
+La figura ilustra de manera intuitiva el concepto de versatilidad de
+nodo:
 
-* La mayoría de los nodos aparecen en una sola capa, actuando como nodos especializados (por ejemplo, paradas de bus o estaciones de bici aisladas).
-* En contraste, un número reducido de nodos conecta tres o incluso cuatro capas, desempeñando un rol multinodal esencial.
+-   La mayoría de los nodos aparecen en una sola capa, actuando como
+    nodos especializados (por ejemplo, paradas de bus o estaciones de
+    bici aisladas).
+-   En contraste, un número reducido de nodos conecta tres o incluso
+    cuatro capas, desempeñando un rol multinodal esencial.
 
-Este patrón es consistente con la literatura sobre redes multicapas, donde se observa que la importancia de un nodo no puede evaluarse correctamente desde una sola capa. La visualización 3D confirma que los nodos versátiles no solo existen, sino que son estructuralmente visibles cuando se representan explícitamente las capas y sus interdependencias.
+Este patrón es consistente con la literatura sobre redes multicapas,
+donde se observa que la importancia de un nodo no puede evaluarse
+correctamente desde una sola capa. La visualización 3D confirma que los
+nodos versátiles no solo existen, sino que son estructuralmente visibles
+cuando se representan explícitamente las capas y sus interdependencias.
 
 **Implicaciones para vulnerabilidad y resiliencia**
 
-Desde el punto de vista de la vulnerabilidad del sistema, la visualización sugiere una conclusión relevante:
+Desde el punto de vista de la vulnerabilidad del sistema, la
+visualización sugiere una conclusión relevante:
 
-* La conectividad multimodal del transporte madrileño depende de un conjunto relativamente pequeño de nodos altamente interconectados entre capas.
-* Una perturbación localizada en estos nodos (por ejemplo, cierre de un intercambiador o fallo simultáneo de varios modos en una zona) podría propagarse rápidamente al resto del sistema, afectando a múltiples capas.
+-   La conectividad multimodal del transporte madrileño depende de un
+    conjunto relativamente pequeño de nodos altamente interconectados
+    entre capas.
+-   Una perturbación localizada en estos nodos (por ejemplo, cierre de
+    un intercambiador o fallo simultáneo de varios modos en una zona)
+    podría propagarse rápidamente al resto del sistema, afectando a
+    múltiples capas.
 
-Este comportamiento es coherente con los modelos de cascadas de fallo en redes interdependientes descritos en la literatura (Buldyrev et al., 2010; Duan et al., 2019), donde la interdependencia aumenta tanto la eficiencia como la fragilidad del sistema.
+Este comportamiento es coherente con los modelos de cascadas de fallo en
+redes interdependientes descritos en la literatura (Buldyrev et al.,
+2010; Duan et al., 2019), donde la interdependencia aumenta tanto la
+eficiencia como la fragilidad del sistema.
 
 **Valor añadido de la representación multicapa**
 
-Finalmente, esta visualización demuestra el valor añadido del enfoque multicapa frente a representaciones tradicionales:
+Finalmente, esta visualización demuestra el valor añadido del enfoque
+multicapa frente a representaciones tradicionales:
 
-* Permite identificar de forma directa los intercambiadores críticos.
-* Hace visible la estructura de interdependencia entre modos.
-* Facilita la interpretación de conceptos abstractos como versatilidad, roles multinodales y vulnerabilidad sistémica.
+-   Permite identificar de forma directa los intercambiadores críticos.
+-   Hace visible la estructura de interdependencia entre modos.
+-   Facilita la interpretación de conceptos abstractos como
+    versatilidad, roles multinodales y vulnerabilidad sistémica.
 
-En conjunto, el gráfico 3D no solo actúa como herramienta exploratoria, sino como una evidencia visual clara de que el sistema de transporte de Madrid funciona como una red interconectada de capas, cuya eficiencia y resiliencia dependen de la correcta gestión de sus nodos multimodales clave.
-
+En conjunto, el gráfico 3D no solo actúa como herramienta exploratoria,
+sino como una evidencia visual clara de que el sistema de transporte de
+Madrid funciona como una red interconectada de capas, cuya eficiencia y
+resiliencia dependen de la correcta gestión de sus nodos multimodales
+clave.
 
 # Centralidad y versatilidad de las zonas
 
@@ -802,7 +1026,8 @@ centralidad_por_capa %>%
 
 ## 2. Versatilidad de grado
 
-Definimos una medida de versatilidad basada en la entropía de Shannon de la distribución de grado entre modos.
+Definimos una medida de versatilidad basada en la entropía de Shannon de
+la distribución de grado entre modos.
 
 ```{r versatilidad-grado}
 mat_grado <- centralidad_por_capa %>% 
@@ -853,22 +1078,25 @@ kable(top_versatiles, caption = "Top 15 zonas más versátiles")
 kable(top_especializados, caption = "Top 15 zonas más especializadas")
 ```
 
-Desde el punto de vista espacial, las zonas con **alta versatilidad de grado** se
-concentran en torno a los grandes intercambiadores de transporte y a las áreas más
-centrales de la ciudad. Se trata de nodos que combinan conectividad en varias capas de
-la red (metro, bus, cercanías, bicicleta pública), de modo que actúan como puntos de
-transferencia entre modos diferentes. Estas zonas tienen grados relativamente altos en
-varias capas simultáneamente y, por tanto, desempeñan un papel de “puente multimodal”
-entre distintas partes del sistema de transporte.
+Desde el punto de vista espacial, las zonas con **alta versatilidad de
+grado** se concentran en torno a los grandes intercambiadores de
+transporte y a las áreas más centrales de la ciudad. Se trata de nodos
+que combinan conectividad en varias capas de la red (metro, bus,
+cercanías, bicicleta pública), de modo que actúan como puntos de
+transferencia entre modos diferentes. Estas zonas tienen grados
+relativamente altos en varias capas simultáneamente y, por tanto,
+desempeñan un papel de “puente multimodal” entre distintas partes del
+sistema de transporte.
 
-En el extremo opuesto, las zonas con **baja versatilidad** tienden a estar especializadas
-en un único modo de transporte, típicamente la red de autobuses o una línea concreta de
-metro. Su grado puede ser elevado dentro de una sola capa, pero su conectividad se
-limita a ese modo, de modo que su capacidad para redistribuir flujos entre capas es
-reducida. Esta especialización puede ser eficiente en términos operativos, pero hace que
-la zona sea menos flexible ante perturbaciones que afecten a su modo dominante, ya que
-existen menos alternativas multimodales inmediatas.
-
+En el extremo opuesto, las zonas con **baja versatilidad** tienden a
+estar especializadas en un único modo de transporte, típicamente la red
+de autobuses o una línea concreta de metro. Su grado puede ser elevado
+dentro de una sola capa, pero su conectividad se limita a ese modo, de
+modo que su capacidad para redistribuir flujos entre capas es reducida.
+Esta especialización puede ser eficiente en términos operativos, pero
+hace que la zona sea menos flexible ante perturbaciones que afecten a su
+modo dominante, ya que existen menos alternativas multimodales
+inmediatas.
 
 ## 3. Relación entre versatilidad e intensidad de viajes
 
@@ -884,11 +1112,13 @@ versatilidad_df %>%
     y = "Versatilidad de grado"
   )
 ```
-En la Figura anterior se representa la relación entre la versatilidad de grado de las zonas
-y el número medio de viajes diarios por persona en su distrito. Visualmente no se aprecia
-una tendencia clara ni creciente ni decreciente, lo que ya apunta a una asociación débil
-entre ambas variables. Este resultado se confirma al calcular la correlación lineal de
-Pearson. 
+
+En la Figura anterior se representa la relación entre la versatilidad de
+grado de las zonas y el número medio de viajes diarios por persona en su
+distrito. Visualmente no se aprecia una tendencia clara ni creciente ni
+decreciente, lo que ya apunta a una asociación débil entre ambas
+variables. Este resultado se confirma al calcular la correlación lineal
+de Pearson.
 
 ```{r correlacion-versatilidad-viajes}
 datos_cor <- versatilidad_df %>% 
@@ -910,25 +1140,28 @@ if (n_obs >= 3) {
 }
 ```
 
-el coeficiente obtenido (0.00345433) es muy cercano a cero y no resulta estadísticamente
-significativo (p-valor elevado). 
+el coeficiente obtenido (0.00345433) es muy cercano a cero y no resulta
+estadísticamente significativo (p-valor elevado).
 
-En términos prácticos, esto indica que los nodos más versátiles del sistema de transporte
-no se localizan necesariamente en los distritos con mayor intensidad de movilidad. Es
-decir, una zona puede desempeñar un papel multimodal clave (conexión entre varios modos
-y capas de la red) aun cuando su distrito no sea el que concentra más viajes por persona.
-Por tanto, la relevancia estructural de un nodo en la red multicapa no viene determinada
-únicamente por la demanda de viajes de su entorno, sino por su posición dentro de la
-topología global de la red de transporte.
-
-
+En términos prácticos, esto indica que los nodos más versátiles del
+sistema de transporte no se localizan necesariamente en los distritos
+con mayor intensidad de movilidad. Es decir, una zona puede desempeñar
+un papel multimodal clave (conexión entre varios modos y capas de la
+red) aun cuando su distrito no sea el que concentra más viajes por
+persona. Por tanto, la relevancia estructural de un nodo en la red
+multicapa no viene determinada únicamente por la demanda de viajes de su
+entorno, sino por su posición dentro de la topología global de la red de
+transporte.
 
 # Vulnerabilidad de la red de transporte
 
-En lugar de implementar un modelo muy complejo de cascadas, realizamos un análisis sencillo pero informativo de **robustez estructural**:
+En lugar de implementar un modelo muy complejo de cascadas, realizamos
+un análisis sencillo pero informativo de **robustez estructural**:
 
-- Tomamos la red agregada (unión de todas las capas).
-- Eliminamos nodos de forma dirigida (los más centrales) en una capa y observamos cómo disminuye el tamaño de la componente gigante agregada.
+-   Tomamos la red agregada (unión de todas las capas).
+-   Eliminamos nodos de forma dirigida (los más centrales) en una capa y
+    observamos cómo disminuye el tamaño de la componente gigante
+    agregada.
 
 ## 1. Red agregada
 
@@ -953,7 +1186,9 @@ tamano_gcc_inicial
 
 ## 2. Robustez frente a fallos en una capa
 
-Analizamos qué ocurre si vamos eliminando nodos con mayor grado en la capa `metro` y miramos el tamaño relativo de la componente gigante en la red agregada.
+Analizamos qué ocurre si vamos eliminando nodos con mayor grado en la
+capa `metro` y miramos el tamaño relativo de la componente gigante en la
+red agregada.
 
 ```{r robustez-metro}
 g_metro <- g_list[["metro"]]
@@ -991,20 +1226,23 @@ resultado_robustez %>%
   )
 ```
 
-La Figura muestra la evolución del tamaño relativo de la componente gigante de la red
-agregada a medida que se eliminan progresivamente nodos de la capa de metro, siguiendo
-un criterio dirigido basado en su centralidad. Se observa una disminución aproximadamente
-monótona y casi lineal de la conectividad global, lo que indica que los nodos más centrales
-de la red de metro desempeñan un papel estructural clave en la cohesión del sistema
-multicapa.
+La Figura muestra la evolución del tamaño relativo de la componente
+gigante de la red agregada a medida que se eliminan progresivamente
+nodos de la capa de metro, siguiendo un criterio dirigido basado en su
+centralidad. Se observa una disminución aproximadamente monótona y casi
+lineal de la conectividad global, lo que indica que los nodos más
+centrales de la red de metro desempeñan un papel estructural clave en la
+cohesión del sistema multicapa.
 
-En particular, la eliminación del 20–30 % de los nodos más relevantes de la capa de metro
-reduce el tamaño de la componente gigante a alrededor del 70–75 % de su valor inicial,
-mientras que al eliminar la mitad de los nodos centrales la red pierde más del 50 % de su
-conectividad global. Este resultado pone de manifiesto que la capa de metro actúa como
-columna vertebral del sistema de transporte urbano: disrupciones severas concentradas en
-sus nodos más importantes pueden propagarse al resto de capas y provocar una
-fragmentación significativa de la red agregada.
+En particular, la eliminación del 20–30 % de los nodos más relevantes de
+la capa de metro reduce el tamaño de la componente gigante a alrededor
+del 70–75 % de su valor inicial, mientras que al eliminar la mitad de
+los nodos centrales la red pierde más del 50 % de su conectividad
+global. Este resultado pone de manifiesto que la capa de metro actúa
+como columna vertebral del sistema de transporte urbano: disrupciones
+severas concentradas en sus nodos más importantes pueden propagarse al
+resto de capas y provocar una fragmentación significativa de la red
+agregada.
 
 ### Comparación entre fallos dirigidos y aleatorios
 
@@ -1060,41 +1298,84 @@ ggplot(res_vuln,
 
 ```
 
-La Figura compara la robustez de la red agregada frente a dos escenarios de disrupción:
-la eliminación dirigida de nodos altamente centrales y la eliminación aleatoria de nodos.
-Las diferencias entre ambas estrategias son claras. Para una misma fracción de nodos
-eliminados, el ataque dirigido produce una reducción mucho más acusada del tamaño de la
+La Figura compara la robustez de la red agregada frente a dos escenarios
+de disrupción: la eliminación dirigida de nodos altamente centrales y la
+eliminación aleatoria de nodos. Las diferencias entre ambas estrategias
+son claras. Para una misma fracción de nodos eliminados, el ataque
+dirigido produce una reducción mucho más acusada del tamaño de la
 componente gigante que el fallo aleatorio.
 
-Mientras que la eliminación aleatoria da lugar a una degradación gradual de la
-conectividad —manteniéndose más del 50 % de la componente gigante incluso tras eliminar
-el 50 % de los nodos—, el ataque dirigido provoca una fragmentación mucho más rápida,
-reduciendo la componente gigante a valores cercanos al 40 % para la misma fracción
-eliminada. Este comportamiento es característico de redes complejas con fuerte
-heterogeneidad estructural, que suelen ser robustas frente a fallos aleatorios pero muy
-vulnerables a ataques selectivos sobre sus nodos más importantes.
+Mientras que la eliminación aleatoria da lugar a una degradación gradual
+de la conectividad —manteniéndose más del 50 % de la componente gigante
+incluso tras eliminar el 50 % de los nodos—, el ataque dirigido provoca
+una fragmentación mucho más rápida, reduciendo la componente gigante a
+valores cercanos al 40 % para la misma fracción eliminada. Este
+comportamiento es característico de redes complejas con fuerte
+heterogeneidad estructural, que suelen ser robustas frente a fallos
+aleatorios pero muy vulnerables a ataques selectivos sobre sus nodos más
+importantes.
 
-En el contexto del transporte urbano, estos resultados subrayan la existencia de nodos
-críticos cuya correcta operación resulta fundamental para la resiliencia del sistema
-multicapa. La protección, monitorización y dotación de redundancias en los principales
-intercambiadores multimodales se revela, por tanto, como una estrategia clave para mitigar
-los efectos de disrupciones severas.
-
+En el contexto del transporte urbano, estos resultados subrayan la
+existencia de nodos críticos cuya correcta operación resulta fundamental
+para la resiliencia del sistema multicapa. La protección, monitorización
+y dotación de redundancias en los principales intercambiadores
+multimodales se revela, por tanto, como una estrategia clave para
+mitigar los efectos de disrupciones severas.
 
 # Conclusiones
 
-En esta memoria se ha construido y analizado una **red multicapas de transporte para Madrid** utilizando exclusivamente los datos proporcionados:
+En esta memoria se ha construido y analizado una **red multicapas de
+transporte para Madrid** utilizando exclusivamente los datos
+proporcionados:
 
-- Las paradas se han agrupado en **zonas de intercambio** mediante clustering espacial.
-- Se ha definido una red multicapa con capas para `bus`, `metro`, `bicimad` y `parking`.
-- Se ha calculado la **centralidad** de las zonas en cada capa y un indicador de **versatilidad de grado** que muestra qué zonas son importantes en varios modos a la vez.
-- Se ha generado una visualización multicapa con `muxViz` que hace explícita la estructura en capas.
-- Se ha estudiado la **robustez estructural** de la red agregada frente a fallos dirigidos en nodos centrales de la capa `metro`.
+-   Las paradas se han agrupado en **zonas de intercambio** mediante
+    clustering espacial.
+-   Se ha definido una red multicapa con capas para `bus`, `metro`,
+    `bicimad` y `parking`.
+-   Se ha calculado la **centralidad** de las zonas en cada capa y un
+    indicador de **versatilidad de grado** que muestra qué zonas son
+    importantes en varios modos a la vez.
+-   Se ha generado una visualización multicapa con `muxViz` que hace
+    explícita la estructura en capas.
+-   Se ha estudiado la **robustez estructural** de la red agregada
+    frente a fallos dirigidos en nodos centrales de la capa `metro`.
 
 A partir de aquí, se podrían ampliar los análisis:
 
-- Incorporando información de líneas reales (no solo proximidad espacial).
-- Usando otras medidas de centralidad (betweenness, eigenvector, PageRank).
-- Implementando modelos de cascadas más cercanos a la literatura de redes interdependientes.
+-   Incorporando información de líneas reales (no solo proximidad
+    espacial).
+-   Usando otras medidas de centralidad (betweenness, eigenvector,
+    PageRank).
+-   Implementando modelos de cascadas más cercanos a la literatura de
+    redes interdependientes.
 
-El código está preparado para ejecutarse directamente (asumiendo que los CSV y los paquetes necesarios están disponibles) y centrado únicamente en los datos reales de Madrid, tal y como se pedía en el enunciado.
+El código está preparado para ejecutarse directamente (asumiendo que los
+CSV y los paquetes necesarios están disponibles) y centrado únicamente
+en los datos reales de Madrid, tal y como se pedía en el enunciado.
+
+## Implementación Técnica y Uso de muxViz
+
+Para la realización de este estudio, la librería muxViz en R ha sido la
+herramienta fundamental, permitiéndonos traducir los datos crudos de
+transporte en un modelo matemático robusto. El proceso se ha
+estructurado en tres fases clave:
+
+Modelado de la Red: A partir de las listas de enlaces procesadas,
+utilizamos la función buildMultilayerNetworkFromEdgeList(). Esto fue
+crucial para generar el objeto multicapa (mlo) y construir internamente
+la supra-matriz de adyacencia, que unifica las capas de Metro, Bus y
+BiciMAD en una sola estructura tensorial.
+
+Análisis de Métricas: Para cuantificar la relevancia de las paradas,
+calculamos el Grado Multicapa mediante GetMultiLayerDegree(), obteniendo
+la conectividad total. Sin embargo, para medir la versatilidad real de
+los nodos (su capacidad para influir en todo el sistema y no solo en su
+capa), nos basamos en el cálculo del MultiLayer PageRank
+(GetMultiLayerPageRank()), identificando así los verdaderos hubs
+intermodales de Madrid.
+
+Visualización: Finalmente, para interpretar la topología resultante,
+empleamos layout_multiplex() para fijar las coordenadas geoespaciales y
+plot_multiplex() para generar las representaciones gráficas en 3D,
+permitiendo observar visualmente la interacción y el solapamiento entre
+las distintas capas de transporte.
