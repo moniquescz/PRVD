@@ -296,6 +296,9 @@ simple):
 
 ```{r mapa-zonas, message=FALSE}
 # Aseguramos que sea factor
+zonas_sf <- zonas %>% 
+  st_as_sf(coords = c("stop_lon", "stop_lat"), crs = 4326)
+
 zonas_sf$distrito_asignado <- as.factor(zonas_sf$distrito_asignado)
 n_distritos <- length(levels(zonas_sf$distrito_asignado))
 
@@ -693,7 +696,7 @@ if (requireNamespace("rgl", quietly = TRUE)) {
 
 ```
 
-
+Finalmente, para poder tener una perspectiva distinta utilizamos el resto de la visualización en un entorno tridimensional interactivo. A diferencia de las proyecciones planas, este gráfico 'desapila' la red de transporte ubicando cada modo (Metro, Bus, BiciMAD, Parking) en un nivel diferente del eje Z. Esto nos permite observar la estructura multiplex del sistema: las líneas verticales negras conectan una misma zona geográfica a través de sus diferentes capas, facilitando la identificación visual de los nodos con mayor integración multimodal.
 
 ```{r plot-3d-multicapa, message=FALSE, warning=FALSE}
 # ===========================================
@@ -1052,11 +1055,23 @@ calc_versatilidad <- function(vec) {
 
 versatilidad <- apply(grado_mat, 1, calc_versatilidad)
 
+zonas_attrs <- zonas_attrs %>% 
+  mutate(distrito_asignado = as.integer(distrito_asignado))
+
+viajes_distrito <- viajes_distrito %>% 
+  mutate(distrito = as.integer(distrito))
+
 versatilidad_df <- tibble(
   cluster_id = as.integer(names(versatilidad)),
   versatilidad_grado = as.numeric(versatilidad)
 ) %>% 
-  left_join(zonas_attrs, by = "cluster_id")
+  left_join(zonas_attrs, by = "cluster_id") %>% 
+  # AQUÍ OCURRE LA MAGIA: Unimos con la tabla de viajes
+  left_join(viajes_distrito, by = c("distrito_asignado" = "distrito"))
+
+# Verificación visual: ¿Aparece la columna ahora?
+print("Columnas en versatilidad_df:")
+print(colnames(versatilidad_df))
 
 summary(versatilidad_df$versatilidad_grado)
 ```
@@ -1078,8 +1093,7 @@ kable(top_versatiles, caption = "Top 15 zonas más versátiles")
 kable(top_especializados, caption = "Top 15 zonas más especializadas")
 ```
 
-Desde el punto de vista espacial, las zonas con **alta versatilidad de
-grado** se concentran en torno a los grandes intercambiadores de
+Desde el punto de vista espacial, las zonas con **alta versatilidad de grado** se concentran en torno a los grandes intercambiadores de
 transporte y a las áreas más centrales de la ciudad. Se trata de nodos
 que combinan conectividad en varias capas de la red (metro, bus,
 cercanías, bicicleta pública), de modo que actúan como puntos de
@@ -1099,6 +1113,7 @@ modo dominante, ya que existen menos alternativas multimodales
 inmediatas.
 
 ## 3. Relación entre versatilidad e intensidad de viajes
+
 
 ```{r versatilidad-vs-viajes}
 versatilidad_df %>% 
@@ -1140,7 +1155,7 @@ if (n_obs >= 3) {
 }
 ```
 
-el coeficiente obtenido (0.00345433) es muy cercano a cero y no resulta
+el coeficiente obtenido (0.003613297) es muy cercano a cero y no resulta
 estadísticamente significativo (p-valor elevado).
 
 En términos prácticos, esto indica que los nodos más versátiles del
