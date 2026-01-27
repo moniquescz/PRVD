@@ -1,6 +1,6 @@
 ---
 title: "Redes Multicapas en el Transporte de Madrid"
-author: "Tu nombre"
+author: "Jairo Madrigal Cutillas, Mónica Sánchez Bellido , Nicolás Martín Morcillo, Eric Mas Belén"
 date: "`r format(Sys.Date(), '%d/%m/%Y')`"
 output:
   html_document:
@@ -20,6 +20,8 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
+rm(list=ls())
+
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
@@ -518,13 +520,10 @@ Para ello usamos la función `plot_multiplex3D` de `muxViz`. Se asume que
 `muxViz` está instalado; si no lo está, el código no fallará, pero
 mostrará un mensaje.
 
-```{r plot-multiplex3D}
-
+```{r plot-multiplex3D-espaciado, fig.width=10, fig.height=10}
 # --- 1. PREPARACIÓN DE DATOS ---
-# Ordenamos para consistencia
 zonas_attrs <- zonas_attrs[order(zonas_attrs$cluster_id), ]
 
-# Coordenadas (Las calculamos, pero NO las usaremos en el plot 3D por el bug)
 centroides_mat <- st_coordinates(st_transform(zonas_sf, 25830))
 zonas_centroides <- data.frame(
   cluster_id = zonas$cluster_id,
@@ -545,7 +544,6 @@ for (m in modos) {
     aristas_modo <- list()
     
     for (i in 1:nrow(coords_sub)) {
-      # Distancia Euclídea
       dists <- sqrt((coords_sub$x[i] - coords_sub$x)^2 + (coords_sub$y[i] - coords_sub$y)^2)
       
       df_temp <- data.frame(
@@ -555,7 +553,6 @@ for (m in modos) {
         dist = dists
       )
       
-      # Top 3 vecinos
       df_temp <- df_temp[df_temp$from != df_temp$to, ]
       df_temp <- df_temp[order(df_temp$dist), ]
       aristas_modo[[i]] <- head(df_temp, 3)
@@ -573,55 +570,50 @@ g_list <- list()
 
 for (m in modos) {
   e_sub <- edges_intra[edges_intra$modo == m, c("from", "to", "w")]
-  
-  # Usamos vertices = zonas_attrs para asegurar que todas las capas
-  # tengan el mismo número de nodos y en el mismo orden.
-  g <- graph_from_data_frame(
-    d = e_sub, 
-    directed = FALSE, 
-    vertices = zonas_attrs
-  )
+  g <- graph_from_data_frame(d = e_sub, directed = FALSE, vertices = zonas_attrs)
   g_list[[m]] <- g
 }
 
 
-# --- 4. VISUALIZACIÓN 3D MANUAL (CORREGIDA: SOLO NODOS ACTIVOS) ---
+# --- 4. VISUALIZACIÓN 3D MEJORADA (MÁS ESPACIO) ---
 if (requireNamespace("rgl", quietly = TRUE)) {
   library(rgl)
   library(igraph)
   
-  # Limpiamos la escena anterior
   clear3d() 
+  open3d()
+  par3d(windowRect = c(0, 0, 900, 900)) # Ventana un poco más grande
+  bg3d("white")
+  view3d(theta = 30, phi = 30, zoom = 0.7) # Zoom un poco más lejos
   
-  # 1. PREPARACIÓN
-  # Normalizamos coordenadas igual que antes
-  lay_norm <- scale(centroides_mat) 
+  # --- AJUSTES DE ESPACIADO ---
+  # 1. Factor de dispersión horizontal: Multiplicamos para separar los puntos XY
+  spread_factor <- 3.0 
+  lay_norm <- scale(centroides_mat) * spread_factor
+  
+  # 2. Separación vertical aumentada
+  z_sep <- 8.0 
   
   colores <- c(bicimad="#1a9641", bus="#d7191c", metro="#2c7bb6", parking="#fdae61")
   layer_names <- names(g_list)
-  z_sep <- 3.0  # Aumenté un poco la separación para ver mejor
-  
-  # Configuración de vista inicial
-  open3d()
-  bg3d("white")
-  view3d(theta = 30, phi = 30, zoom = 0.8)
   
   # --- BUCLE: CAPA POR CAPA ---
   for (i in 1:length(g_list)) {
     g <- g_list[[i]]
     lay_z <- rep(i * z_sep, nrow(lay_norm)) 
     
-    # A. PLANO BASE (Referencia visual translúcida)
+    # A. PLANO BASE
     rango_x <- range(lay_norm[,1])
     rango_y <- range(lay_norm[,2])
+    # Hacemos el plano ligeramente más grande que los puntos
     quads3d(
-      x = c(rango_x[1], rango_x[2], rango_x[2], rango_x[1]),
-      y = c(rango_y[1], rango_y[1], rango_y[2], rango_y[2]),
-      z = rep(i * z_sep - 0.1, 4), 
-      col = "gray90", alpha = 0.2  # Muy transparente para no molestar
+      x = c(rango_x[1]-1, rango_x[2]+1, rango_x[2]+1, rango_x[1]-1),
+      y = c(rango_y[1]-1, rango_y[1]-1, rango_y[2]+1, rango_y[2]+1),
+      z = rep(i * z_sep - 0.2, 4), 
+      col = "gray95", alpha = 0.1 # Más transparente aún
     )
     
-    # B. ARISTAS (Conexiones horizontales)
+    # B. ARISTAS
     edgelist <- as_edgelist(g, names = FALSE)
     if (nrow(edgelist) > 0) {
       x0 <- lay_norm[edgelist[,1], 1]; x1 <- lay_norm[edgelist[,2], 1]
@@ -632,69 +624,156 @@ if (requireNamespace("rgl", quietly = TRUE)) {
         x = as.vector(rbind(x0, x1)),
         y = as.vector(rbind(y0, y1)),
         z = as.vector(rbind(z0, z0)),
-        col = "gray0", lwd = 1, alpha = 0.6
+        col = "gray0", lwd = 1, alpha = 0.4
       )
     }
     
-    # C. NODOS (EL CAMBIO IMPORTANTE)
-    # Calculamos el grado (número de conexiones) de cada nodo en ESTA capa
+    # C. NODOS
     deg <- degree(g)
-    
-    # FILTRO: Solo dibujamos nodos que tengan al menos 1 conexión en esta capa
-    # (Opcional: Si quieres ver nodos aislados pero activos, cambia a > -1, 
-    # pero > 0 limpia el gráfico de "basura")
     active_idx <- which(deg > 0)
     
     if (length(active_idx) > 0) {
-      # Tamaño según importancia
+      # Ajuste fino del tamaño de las esferas
       sizes <- 0.8 + (deg[active_idx] / (max(deg)+1)) * 1.5
-      
       spheres3d(
         x = lay_norm[active_idx, 1], 
         y = lay_norm[active_idx, 2], 
         z = lay_z[active_idx],
-        radius = sizes * 0.15, 
+        radius = sizes * 0.2, # Radio ajustado
         col = colores[i]
       )
     }
     
-    # D. Etiqueta de capa
+    # D. ETIQUETA
     text3d(
-      x = min(lay_norm[,1]), y = min(lay_norm[,2]), z = i * z_sep + 0.5, 
+      x = min(lay_norm[,1]) - 1, # Un poco más a la izquierda
+      y = min(lay_norm[,2]) - 1, 
+      z = i * z_sep + 0.5, 
       text = layer_names[i], col = colores[i], cex = 1.2, font = 2
     )
   }
   
-  # --- CONEXIONES VERTICALES (INTER-LAYER) ---
-  # Solo dibujamos líneas verticales donde realmente hay actividad
-  # Recorremos todos los nodos
+  # --- CONEXIONES VERTICALES ---
   for (k in 1:nrow(lay_norm)) {
-    # Verificamos en qué capas está activo este nodo (grado > 0)
-    # Esto evita dibujar líneas verticales en zonas vacías
     capas_activas <- sapply(g_list, function(g) degree(g)[k] > 0)
     idx_capas <- which(capas_activas)
     
     if (length(idx_capas) >= 2) {
-      # Si el nodo existe en 2 o más capas, trazamos una línea que las cruce
       z_vals <- idx_capas * z_sep
-      
       segments3d(
         x = rep(lay_norm[k,1], 2),
         y = rep(lay_norm[k,2], 2),
-        z = range(z_vals), # De la capa activa más baja a la más alta
-        col = "gray0", lwd = 1, alpha = 0.3
+        z = range(z_vals),
+        col = "gray0", lwd = 1, alpha = 0.15 # Más sutiles para no ensuciar
       )
     }
   }
   
-  message("Gráfico corregido: Solo se muestran los nodos activos por capa.")
+  rglwidget()
   
 } else {
   message("Instala rgl")
 }
-
-
 ```
+
+Visualización de la red por capas y agregada
+
+```{r plot-muxviz-styles}
+# --- CONFIGURACIÓN ESTÉTICA ---
+colores <- c(bicimad="#1a9641", bus="#d7191c", metro="#2c7bb6", parking="#fdae61")
+titulos <- names(g_list)
+# Layout geográfico fijo (usamos las coordenadas que ya calculaste)
+layout_geo <- as.matrix(centroides_mat)
+
+
+# ==============================================================================
+# VISTA 1: PANEL 2D (MULTIPLEX SLICES)
+# Muestra cada capa por separado manteniendo la posición geográfica
+# ==============================================================================
+par(mfrow = c(2, 2), mar = c(1, 1, 3, 1)) # Rejilla 2x2
+
+for (m in titulos) {
+  g <- g_list[[m]]
+  deg <- degree(g)
+  
+  # Lógica visual: 
+  # Nodos activos = color intenso y tamaño según grado
+  # Nodos inactivos = gris muy claro y pequeños (para mantener referencia espacial)
+  v_col <- ifelse(deg > 0, colores[m], adjustcolor("gray90", alpha.f = 0.5))
+  v_size <- ifelse(deg > 0, 3 + (deg/max(deg))*5, 1)
+  v_frame <- ifelse(deg > 0, "black", NA) # Sin borde si está inactivo
+  
+  # Aristas: Más finas y transparentes
+  e_col <- adjustcolor(colores[m], alpha.f = 0.6)
+  
+  plot(g,
+       layout = layout_geo,
+       vertex.label = NA,
+       vertex.size = v_size,
+       vertex.color = v_col,
+       vertex.frame.color = v_frame,
+       edge.color = e_col,
+       edge.width = 0.5,
+       edge.arrow.size = 0,
+       main = toupper(m))
+  
+  box(col = "gray80") # Marco suave alrededor de cada plot
+}
+
+
+# ==============================================================================
+# VISTA 2: RED AGREGADA (OVERLAY)
+# Superpone todo para ver "corredores" multimodales
+# ==============================================================================
+par(mfrow = c(1, 1), mar = c(0, 0, 2, 0))
+
+# Creamos un plot vacío primero para establecer los límites
+plot(layout_geo, type = "n", axes = FALSE, xlab = "", ylab = "", 
+     main = "RED AGREGADA (OVERLAP)")
+
+# Dibujamos las aristas de cada capa acumulativamente
+# Truco: Dibujamos primero las capas más densas (Bus/Metro) al fondo, Bicimad arriba
+orden_capas <- c("bus", "metro", "parking", "bicimad") 
+
+for (m in orden_capas) {
+  if (m %in% names(g_list)) {
+    g <- g_list[[m]]
+    
+    # Extraemos aristas solo si existen
+    if (gsize(g) > 0) {
+      el <- as_edgelist(g, names = FALSE)
+      
+      # Coordenadas de inicio y fin de las aristas
+      x0 <- layout_geo[el[,1], 1]
+      y0 <- layout_geo[el[,1], 2]
+      x1 <- layout_geo[el[,2], 1]
+      y1 <- layout_geo[el[,2], 2]
+      
+      # Dibujar líneas (curvadas ligeramente para ver solapamientos sería ideal, 
+      # pero rectas es más limpio en mapas densos)
+      segments(x0, y0, x1, y1, 
+               col = adjustcolor(colores[m], alpha.f = 0.4), 
+               lwd = 1)
+    }
+  }
+}
+
+# Dibujamos nodos ENCIMA de las líneas
+# Calculamos grado total sumando todas las capas
+deg_total <- rowSums(sapply(g_list, degree))
+active_nodes <- deg_total > 0
+
+points(layout_geo[active_nodes, ], 
+       pch = 21, 
+       bg = "white", 
+       col = "gray30", 
+       cex = 0.8 + (deg_total[active_nodes]/max(deg_total))*1.5)
+
+legend("bottomright", legend = names(colores), 
+       col = colores, lty = 1, lwd = 3, bty = "n", cex = 0.8)
+```
+
+
 
 Finalmente, para poder tener una perspectiva distinta utilizamos el resto de la visualización en un entorno tridimensional interactivo. A diferencia de las proyecciones planas, este gráfico 'desapila' la red de transporte ubicando cada modo (Metro, Bus, BiciMAD, Parking) en un nivel diferente del eje Z. Esto nos permite observar la estructura multiplex del sistema: las líneas verticales negras conectan una misma zona geográfica a través de sus diferentes capas, facilitando la identificación visual de los nodos con mayor integración multimodal.
 
@@ -1029,8 +1108,13 @@ centralidad_por_capa %>%
 
 ## 2. Versatilidad de grado
 
-Definimos una medida de versatilidad basada en la entropía de Shannon de
-la distribución de grado entre modos.
+En este trabajo utilizamos una medida de versatilidad de grado para caracterizar el papel multimodal de cada zona dentro de la red de transporte. Esta métrica no evalúa la intensidad del uso del sistema, sino la estructura de la conectividad de los nodos cuando se consideran simultáneamente las distintas capas modales (metro, autobús, cercanías, bicicleta pública, etc.).
+
+La versatilidad de grado se define a partir de la entropía de Shannon de la distribución del grado de cada zona entre los distintos modos de transporte. Para cada nodo, el grado en cada capa se normaliza respecto al grado total, obteniendo una distribución de probabilidades que refleja cómo se reparte su conectividad entre modos. La entropía resultante se normaliza por su valor máximo teórico, de forma que la métrica toma valores entre 0 y 1.
+
+Valores bajos de versatilidad indican zonas especializadas, cuya conectividad se concentra mayoritariamente en un único modo de transporte, incluso aunque su grado total pueda ser elevado. En cambio, valores altos corresponden a zonas multimodales, donde el grado se reparte de manera más equilibrada entre varias capas de la red. Estas zonas tienden a actuar como puntos de transferencia entre modos y desempeñan un papel clave en la articulación del sistema de transporte.
+
+De este modo, la versatilidad de grado captura una propiedad estructural y relativa de la red, complementaria a las medidas tradicionales de centralidad. Mientras que el grado o el número de viajes reflejan la magnitud de la actividad, la versatilidad informa sobre la diversidad modal de dicha actividad y, por tanto, sobre la capacidad de una zona para redistribuir flujos entre distintos modos de transporte.
 
 ```{r versatilidad-grado}
 mat_grado <- centralidad_por_capa %>% 
@@ -1066,10 +1150,8 @@ versatilidad_df <- tibble(
   versatilidad_grado = as.numeric(versatilidad)
 ) %>% 
   left_join(zonas_attrs, by = "cluster_id") %>% 
-  # AQUÍ OCURRE LA MAGIA: Unimos con la tabla de viajes
   left_join(viajes_distrito, by = c("distrito_asignado" = "distrito"))
 
-# Verificación visual: ¿Aparece la columna ahora?
 print("Columnas en versatilidad_df:")
 print(colnames(versatilidad_df))
 
@@ -1114,7 +1196,6 @@ inmediatas.
 
 ## 3. Relación entre versatilidad e intensidad de viajes
 
-
 ```{r versatilidad-vs-viajes}
 versatilidad_df %>% 
   ggplot(aes(x = viajes_medios_por_persona, y = versatilidad_grado)) +
@@ -1128,12 +1209,7 @@ versatilidad_df %>%
   )
 ```
 
-En la Figura anterior se representa la relación entre la versatilidad de
-grado de las zonas y el número medio de viajes diarios por persona en su
-distrito. Visualmente no se aprecia una tendencia clara ni creciente ni
-decreciente, lo que ya apunta a una asociación débil entre ambas
-variables. Este resultado se confirma al calcular la correlación lineal
-de Pearson.
+La Figura anterior muestra la relación entre la \textbf{versatilidad de grado de las zonas} y el \textbf{número medio de viajes por persona} a nivel de distrito. Visualmente, la nube de puntos no presenta una tendencia clara, lo que sugiere una relación débil entre ambas variables. Este resultado se confirma mediante el análisis de correlación de Pearson.
 
 ```{r correlacion-versatilidad-viajes}
 datos_cor <- versatilidad_df %>% 
@@ -1154,19 +1230,12 @@ if (n_obs >= 3) {
 ")
 }
 ```
+Este cálculo arroja un coeficiente prácticamente nulo ($r = 0.0036$) y no significativo ($p = 0.8867$, $n = 1558$). El intervalo de confianza al 95\,\% incluye el valor cero, lo que indica la ausencia de una asociación lineal estadísticamente significativa entre ambas magnitudes.
 
-el coeficiente obtenido (0.003613297) es muy cercano a cero y no resulta
-estadísticamente significativo (p-valor elevado).
+La línea de suavizado refuerza esta interpretación, mostrando un comportamiento prácticamente plano a lo largo del rango de valores observados. Aunque se aprecia una ligera curvatura en los valores más altos de viajes medios, esta variación es reducida y carece de relevancia estadística. En consecuencia, no se observa evidencia de que los distritos con mayor intensidad de movilidad presenten zonas con una conectividad más equilibrada entre modos de transporte.
 
-En términos prácticos, esto indica que los nodos más versátiles del
-sistema de transporte no se localizan necesariamente en los distritos
-con mayor intensidad de movilidad. Es decir, una zona puede desempeñar
-un papel multimodal clave (conexión entre varios modos y capas de la
-red) aun cuando su distrito no sea el que concentra más viajes por
-persona. Por tanto, la relevancia estructural de un nodo en la red
-multicapa no viene determinada únicamente por la demanda de viajes de su
-entorno, sino por su posición dentro de la topología global de la red de
-transporte.
+Este resultado es coherente con la definición de la versatilidad de grado como una medida \textbf{estructural y relativa} basada en la distribución del grado entre capas modales, y no en el volumen absoluto de actividad. Una zona puede registrar un número elevado de viajes concentrados en un único modo y, por tanto, mostrar una baja versatilidad, mientras que otras zonas con menor intensidad de uso pueden desempeñar un papel multimodal más destacado. De este modo, la versatilidad de grado captura una dimensión complementaria de la red, asociada a su diversidad modal, que no depende directamente de la cantidad de viajes generados.
+
 
 # Vulnerabilidad de la red de transporte
 
@@ -1313,29 +1382,23 @@ ggplot(res_vuln,
 
 ```
 
-La Figura compara la robustez de la red agregada frente a dos escenarios
-de disrupción: la eliminación dirigida de nodos altamente centrales y la
-eliminación aleatoria de nodos. Las diferencias entre ambas estrategias
-son claras. Para una misma fracción de nodos eliminados, el ataque
-dirigido produce una reducción mucho más acusada del tamaño de la
-componente gigante que el fallo aleatorio.
+El análisis conjunto de la versatilidad nodal y la robustez estructural de la red agregada de Madrid arroja tres conclusiones fundamentales sobre la arquitectura del sistema de transporte:
 
-Mientras que la eliminación aleatoria da lugar a una degradación gradual
-de la conectividad —manteniéndose más del 50 % de la componente gigante
-incluso tras eliminar el 50 % de los nodos—, el ataque dirigido provoca
-una fragmentación mucho más rápida, reduciendo la componente gigante a
-valores cercanos al 40 % para la misma fracción eliminada. Este
-comportamiento es característico de redes complejas con fuerte
-heterogeneidad estructural, que suelen ser robustas frente a fallos
-aleatorios pero muy vulnerables a ataques selectivos sobre sus nodos más
-importantes.
+1. Independencia entre Infraestructura y Demanda Individual. Tal como se observa en el gráfico de Versatilidad vs. Viajes, no existe una correlación clara entre la intensidad de uso (viajes medios por persona en el distrito) y la complejidad multimodal de las paradas.
 
-En el contexto del transporte urbano, estos resultados subrayan la
-existencia de nodos críticos cuya correcta operación resulta fundamental
-para la resiliencia del sistema multicapa. La protección, monitorización
-y dotación de redundancias en los principales intercambiadores
-multimodales se revela, por tanto, como una estrategia clave para
-mitigar los efectos de disrupciones severas.
+    * Estratificación de la oferta: La disposición de los puntos en bandas horizontales discretas revela que la red no es continua, sino jerárquica: la gran mayoría de nodos son unimodales (base del gráfico), mientras que la multimodalidad se da "a saltos" (agregando capas de Metro o BiciMAD).
+  
+    * Homogeneidad de la demanda: El rango estrecho del eje X (1.95 - 2.15 viajes) confirma que la movilidad individual es uniforme en toda la ciudad. Por tanto, la ubicación de los grandes intercambiadores (nodos con alta versatilidad) responde a criterios estratégicos de planificación de red y transbordo, y no a una mayor intensidad de viajes per cápita en esos distritos específicos.
+  
+  
+2. La red es "Robusta pero Frágil". La comparación entre estrategias de fallo (gráfico de Ataque dirigido vs. Fallo aleatorio) confirma que la red de transporte de Madrid comparte la topología típica de las redes complejas libres de escala (scale-free):
+
+    * Alta tolerancia a fallos aleatorios (Línea Roja): El sistema es extremadamente resiliente ante incidencias fortuitas. Incluso ante la inoperatividad del 40% de los nodos de forma aleatoria (simulando averías dispersas o cortes menores), la red mantiene una componente gigante conectada significativa, garantizando la movilidad en gran parte del territorio.
+  
+    * Extrema fragilidad ante ataques dirigidos (Línea Azul/Turquesa): Por el contrario, la red es muy vulnerable si los fallos afectan a sus nodos centrales. La eliminación de apenas el 15-20% de los nodos más conectados provoca el colapso funcional del sistema (fragmentación de la componente gigante por debajo del 20%), aislando grandes zonas de la ciudad.
+  
+  
+3. El Metro como columna vertebral crítica. El análisis específico de la capa de Metro (gráfico de caída monótona) demuestra su rol de esqueleto estructural. Al eliminar los nodos principales de esta capa, la conectividad global de la red agregada decae casi linealmente. Esto implica que la cohesión entre los distintos modos (bus, bici, parking) depende críticamente de la operatividad de las estaciones de metro centrales, que actúan como los "pegamentos" que unen las distintas capas de la red multicapa.
 
 # Conclusiones
 
