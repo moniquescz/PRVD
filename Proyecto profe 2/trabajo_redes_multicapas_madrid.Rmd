@@ -1,6 +1,6 @@
 ---
 title: "Redes Multicapas en el Transporte de Madrid"
-author: "Jairo Madrigal Cutillas, Mónica Sánchez Bellido , Nicolás Martín Morcillo, Eric Mas Belén"
+author: "Jairo Madrigal Cutillas, Mónica Sánchez Bellido, Nicolás Martín Morcillo, Eric Mas Belén"
 date: "`r format(Sys.Date(), '%d/%m/%Y')`"
 output:
   html_document:
@@ -757,8 +757,6 @@ if (requireNamespace("rgl", quietly = TRUE)) {
 
 Visualización de la red por capas y agregada (2D):
 
-Visualización de la red por capas y agregada
-
 ```{r plot-muxviz-styles}
 # --- CONFIGURACIÓN ESTÉTICA ---
 colores <- c(bicimad="#1a9641", bus="#d7191c", metro="#2c7bb6", parking="#fdae61")
@@ -934,8 +932,6 @@ if (requireNamespace("plotly", quietly = TRUE)) {
   }
   edges_inter_3d <- do.call(rbind, edges_inter_list)
 
-  cat("Número de aristas inter-capa generadas:", nrow(edges_inter_3d), "\n")
-
   # ---- 5. Posiciones de nodos para las aristas
   pos_nodes <- nodes_multi_3d[, c("node", "x", "y", "z", "layer")]
 
@@ -946,8 +942,6 @@ if (requireNamespace("plotly", quietly = TRUE)) {
   names(edges_plot)[names(edges_plot) == "x_to"] <- "xend"
   names(edges_plot)[names(edges_plot) == "y_to"] <- "yend"
   names(edges_plot)[names(edges_plot) == "z_to"] <- "zend"
-
-  cat("Aristas con coordenadas válidas:", nrow(edges_plot), "\n")
 
   # ---- 6. Convertimos aristas a formato "long" para scatter3d lines
   if (nrow(edges_plot) > 0) {
@@ -960,7 +954,6 @@ if (requireNamespace("plotly", quietly = TRUE)) {
     edges_long <- data.frame(x = numeric(), y = numeric(), z = numeric())
   }
 
-  cat("Puntos totales en edges_long:", nrow(edges_long), "\n")
 
   # ---- 7. Añadimos multimodalidad y tamaño de nodo
   nodes_multi_3d <- merge(nodes_multi_3d, node_multimodalidad, by = "cluster_id", all.x = TRUE)
@@ -1003,8 +996,9 @@ if (requireNamespace("plotly", quietly = TRUE)) {
       data = edges_long,
       type = "scatter3d",
       mode = "lines",
+      opacity = 0.1,
       x = ~x, y = ~y, z = ~z,
-      line = list(color = "black", width = 4),
+      line = list(color = "darkgray", width = 4),
       showlegend = FALSE,
       hoverinfo = "none"
     )
@@ -1142,7 +1136,7 @@ Calculamos grado y fuerza (suma de pesos) para cada zona en cada modo.
 
 ```{r muxviz-prep-data, message=FALSE, warning=FALSE}
 # --- 1. PREPARACIÓN DE DATOS PARA MUXVIZ ---
-cat("DEBUG: Iniciando preparación de datos...\n")
+
 
 # Mapeamos Modos a IDs numéricos (1..L)
 map_modos <- data.frame(modo = modos, layer_id = 1:length(modos))
@@ -1190,7 +1184,7 @@ edges_muxviz_inter <- nodos_capas_activas %>%
 # Combinamos y forzamos data.frame
 edges_full <- as.data.frame(rbind(edges_muxviz_intra, edges_muxviz_inter))
 
-cat("DEBUG: Aristas preparadas. Total:", nrow(edges_full), "\n")
+
 ```
 
 ```{r muxviz-build-matrix, message=FALSE, warning=FALSE}
@@ -1198,8 +1192,6 @@ cat("DEBUG: Aristas preparadas. Total:", nrow(edges_full), "\n")
 Layers <- length(modos)
 Nodes  <- nrow(map_nodos)
 TotalNodes <- Layers * Nodes
-
-cat("DEBUG: Construyendo Supra-Matriz manualmente ( Dim:", TotalNodes, "x", TotalNodes, ")\n")
 
 get_supra_idx <- function(n, l, NumNodes) {
   return( (l - 1) * NumNodes + n )
@@ -1231,21 +1223,17 @@ SupraAdj <- as_adjacency_matrix(g_supra_temp, attr = "w", sparse = TRUE)
 # Limpieza de memoria agresiva (objetos grandes ya no necesarios)
 rm(edges_supra, edges_muxviz_intra, edges_muxviz_inter, g_supra_temp)
 gc()
-
-cat("DEBUG: Supra-Matriz construida con éxito.\n")
 ```
 
 ```{r muxviz-metrics, message=FALSE, warning=FALSE}
 # --- 3. CÁLCULO DE MÉTRICAS MULTICAPA (MUXVIZ) ---
 # Grado Multicapa
-cat("DEBUG: Calculando MultiDegree...\n")
 # Grado (Robusto)
 tryCatch({
   multi_degree <- GetMultiDegree(SupraAdj, Layers = Layers, Nodes = Nodes, isDirected = FALSE)
 }, error = function(e) multi_degree <<- rowSums(SupraAdj))
 
 # PageRank (Robusto con igraph sobre supra-matriz)
-cat("DEBUG: Calculando MultiPageRank (Optimizado con igraph)...\n")
 # Usamos igraph::page_rank que es C++ optimizado (instantáneo y robusto)
 g_supra_final <- graph_from_adjacency_matrix(SupraAdj, mode = "undirected", weighted = TRUE)
 pr_result <- page_rank(g_supra_final, damping = 0.85)
@@ -1255,8 +1243,6 @@ pr_result <- page_rank(g_supra_final, damping = 0.85)
 pr_vals <- pr_result$vector
 node_indices <- rep(1:Nodes, Layers) # Vector de índices de nodo repetidos
 multi_pagerank <- tapply(pr_vals, node_indices, sum) # Suma por nodo físico
-
-cat("DEBUG: Métricas calculadas.\n")
 
 # Consolidamos resultados en un DF
 metricas_muxviz <- data.frame(
@@ -2137,12 +2123,14 @@ en los datos reales de Madrid, tal y como se pedía en el enunciado.
 
 ## Implementación Técnica y Uso de muxViz
 
-Para la realización de este estudio, la librería `muxViz` en R ha sido la herramienta fundamental para el análisis matemático riguroso. El proceso se ha estructurado en fases clave:
+Para la realización de este estudio, la librería `muxViz` en R ha sido la herramienta fundamental para el análisis matemático. El proceso se ha estructurado en fases clave:
 
-1.  **Modelado de la Red**: Hemos transformado los datos espaciales a "Extended Edge Lists" y utilizado la función `BuildSupraAdjacencyMatrixFromExtendedEdgelist()` de muxViz. Esto generó el objeto tensorial (Supra-Matriz) que unifica matemáticamente las capas de Metro, Bus, BiciMAD y Parking.
+1.  **Modelado de la Red**: Hemos transformado los datos espaciales a "Extended Edge Lists" y utilizado la función `BuildSupraAdjacencyMatrixFromExtendedEdgelist()` de `muxViz`. Esto generó el objeto tensorial (Supra-Matriz) que unifica matemáticamente las capas de Metro, Bus, BiciMAD y Parking.
 
 2.  **Análisis de Métricas**: Para cuantificar la relevancia real de las paradas, hemos calculado:
     *   **Grado Multicapa**: Mediante `GetMultiDegree()`, obteniendo la conectividad total en el supra-grafo.
     *   **PageRank Multicapa**: Mediante `GetMultiPageRankCentrality()`. Esta métrica es superior a la centralidad clásica, ya que identifica los nodos que son importantes por su capacidad de conectar flujos complejos a través de diferentes modos, no solo por tener muchos vecinos directos.
 
-3.  **Visualización**: Para la representación topológica, hemos utilizado la función nativa `plot_multiplex3D()` de `muxViz`, pasando la lista de grafos y las coordenadas geográficas reales. Esto genera una visualización tridimensional auténtica donde se puede apreciar la estructura de capas (Bus, Metro, BiciMAD, Parking) y su alineación espacial. Adicionalmente, hemos complementado con un dashboard interactivo en `plotly` para la exploración de métricas.
+3.  **Visualización**: Aunque `muxViz` proporciona funciones nativas para la visualización de redes multicapa, en este trabajo no se ha utilizado directamente la función original `plot_multiplex3D()`. Esto se debe a la existencia de errores de ejecución y problemas de compatibilidad con versiones recientes de R, documentados en los *issues* abiertos del repositorio oficial de `muxViz` en GitHub, que impedían su correcto funcionamiento.
+
+Por este motivo, se ha empleado una **versión modificada de dicha función**, adaptada a partir del código original de `muxViz`, manteniendo su lógica de representación tridimensional y la filosofía del modelo multicapa. Esta adaptación permite generar una visualización 3D coherente en la que se aprecia claramente la estructura en capas (Bus, Metro, BiciMAD y Parking) y su alineación espacial, garantizando al mismo tiempo la estabilidad y reproducibilidad del análisis. Adicionalmente, la visualización se ha complementado con un dashboard interactivo en `plotly` para la exploración dinámica de las métricas multicapa.
