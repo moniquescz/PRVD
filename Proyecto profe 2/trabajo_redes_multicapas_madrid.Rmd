@@ -1565,6 +1565,439 @@ sobre la arquitectura del sistema de transporte:
     (bus, bici, parking) depende críticamente de la operatividad de las
     estaciones de metro centrales, que actúan como los "pegamentos" que
     unen las distintas capas de la red multicapa.
+    
+    
+# Dashboard Interactivo de la Red de Transporte
+
+En esta sección se presenta un **dashboard interactivo** que resume las métricas principales del análisis de redes multicapas de Madrid. Este dashboard permite una exploración visual e interactiva de los resultados obtenidos.
+
+```{r dashboard-setup, include=FALSE}
+library(plotly)
+library(DT)
+library(htmltools)
+library(crosstalk)
+
+
+# Extraer los grafos individuales de g_list
+g_bus <- g_list[["bus"]]
+g_metro <- g_list[["metro"]]
+g_bicimad <- g_list[["bicimad"]]
+g_parking <- g_list[["parking"]]
+```
+
+## Métricas Generales del Sistema
+
+```{r dashboard-metricas, echo=FALSE}
+# Preparamos las métricas generales
+metricas_generales <- data.frame(
+  Metrica = c(
+    "Total de Zonas de Intercambio",
+    "Total de Conexiones (Agregado)",
+    "Densidad de la Red Agregada",
+    "Tamaño Componente Gigante",
+    "Diámetro de la Red",
+    "Coeficiente de Clustering"
+  ),
+  Valor = c(
+    vcount(g_agregado),
+    ecount(g_agregado),
+    round(edge_density(g_agregado), 4),
+    max(components(g_agregado)$csize),
+    diameter(g_agregado, directed = FALSE),
+    round(transitivity(g_agregado, type = "global"), 4)
+  )
+)
+
+# Creamos una tabla interactiva con estilo
+datatable(
+  metricas_generales,
+  options = list(
+    dom = 't',
+    pageLength = 10,
+    columnDefs = list(list(className = 'dt-center', targets = "_all"))
+  ),
+  rownames = FALSE,
+  class = 'cell-border stripe',
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: center; color: #2c3e50; font-size: 18px; font-weight: bold;',
+    'Métricas Generales de la Red de Transporte de Madrid'
+  )
+) %>%
+  formatStyle(
+    'Metrica',
+    backgroundColor = '#ecf0f1',
+    fontWeight = 'bold'
+  ) %>%
+  formatStyle(
+    'Valor',
+    backgroundColor = '#e8f5e9'
+  )
+```
+
+## Distribución de Nodos por Capa
+
+```{r dashboard-distribucion-capas, echo=FALSE, fig.height=5}
+# Contamos nodos por capa
+nodos_por_capa <- data.frame(
+  Capa = c("Bus", "Metro", "BiciMAD", "Parking"),
+  Nodos = c(
+    sum(degree(g_bus) > 0),
+    sum(degree(g_metro) > 0),
+    sum(degree(g_bicimad) > 0),
+    sum(degree(g_parking) > 0)
+  ),
+  Color = c("#e74c3c", "#2c7bb6", "#27ae60", "#f39c12")
+)
+
+# Gráfico interactivo con plotly
+fig_capas <- plot_ly(
+  nodos_por_capa,
+  labels = ~Capa,
+  values = ~Nodos,
+  type = 'pie',
+  marker = list(colors = ~Color),
+  textposition = 'inside',
+  textinfo = 'label+percent+value',
+  hovertemplate = paste(
+    '<b>%{label}</b><br>',
+    'Nodos: %{value}<br>',
+    'Porcentaje: %{percent}<br>',
+    '<extra></extra>'
+  )
+) %>%
+  layout(
+    title = list(
+      text = "Distribución de Nodos por Capa de Transporte",
+      font = list(size = 18, color = '#2c3e50')
+    ),
+    showlegend = TRUE,
+    legend = list(orientation = 'h', y = -0.1)
+  )
+
+fig_capas
+```
+
+## Top 10 Zonas Más Versátiles
+
+```{r dashboard-top-versatilidad, echo=FALSE}
+# Preparamos el top 10 de versatilidad
+top_versatilidad <- versatilidad_df %>%
+  arrange(desc(versatilidad_grado)) %>%
+  head(10) %>%
+  select(cluster_id, versatilidad_grado, viajes_medios_por_persona) %>%
+  mutate(
+    Ranking = row_number(),
+    cluster_id = as.character(cluster_id),
+    versatilidad_grado = round(versatilidad_grado, 3),
+    viajes_medios_por_persona = round(viajes_medios_por_persona, 3)
+  ) %>%
+  select(Ranking, everything())
+
+colnames(top_versatilidad) <- c("Ranking", "Zona ID", "Versatilidad", "Viajes/Persona")
+
+# Tabla interactiva con colores graduados
+datatable(
+  top_versatilidad,
+  options = list(
+    dom = 't',
+    pageLength = 10,
+    order = list(list(0, 'asc'))
+  ),
+  rownames = FALSE,
+  class = 'cell-border stripe hover',
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: center; color: #2c3e50; font-size: 18px; font-weight: bold;',
+    'Top 10 Zonas con Mayor Versatilidad Multimodal'
+  )
+) %>%
+  formatStyle(
+    'Versatilidad',
+    background = styleColorBar(top_versatilidad$Versatilidad, '#3498db'),
+    backgroundSize = '100% 90%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'center'
+  ) %>%
+  formatStyle(
+    'Ranking',
+    backgroundColor = '#ecf0f1',
+    fontWeight = 'bold',
+    textAlign = 'center'
+  )
+```
+
+## Análisis de Centralidad por Capa
+
+```{r dashboard-centralidad-capas, echo=FALSE, fig.height=6}
+# Preparamos datos de centralidad para cada capa
+centralidad_comparada <- data.frame(
+  Capa = rep(c("Bus", "Metro", "BiciMAD", "Parking"), each = 3),
+  Metrica = rep(c("Grado Medio", "Grado Máximo", "Densidad"), 4),
+  Valor = c(
+    # Bus
+    mean(degree(g_bus)),
+    max(degree(g_bus)),
+    edge_density(g_bus),
+    # Metro
+    mean(degree(g_metro)),
+    max(degree(g_metro)),
+    edge_density(g_metro),
+    # BiciMAD
+    mean(degree(g_bicimad)),
+    max(degree(g_bicimad)),
+    edge_density(g_bicimad),
+    # Parking
+    mean(degree(g_parking)),
+    max(degree(g_parking)),
+    edge_density(g_parking)
+  )
+)
+
+# Normalizamos para mejor visualización
+centralidad_comparada <- centralidad_comparada %>%
+  group_by(Metrica) %>%
+  mutate(Valor_Norm = scales::rescale(Valor, to = c(0, 1))) %>%
+  ungroup()
+
+# Gráfico de barras agrupadas interactivo
+fig_centralidad <- plot_ly(
+  centralidad_comparada,
+  x = ~Metrica,
+  y = ~Valor,
+  color = ~Capa,
+  colors = c("#e74c3c", "#2c7bb6", "#27ae60", "#f39c12"),
+  type = 'bar',
+  text = ~round(Valor, 2),
+  textposition = 'outside',
+  hovertemplate = paste(
+    '<b>%{x}</b><br>',
+    'Capa: %{data.name}<br>',
+    'Valor: %{y:.4f}<br>',
+    '<extra></extra>'
+  )
+) %>%
+  layout(
+    title = list(
+      text = "Comparación de Métricas de Centralidad por Capa",
+      font = list(size = 18, color = '#2c3e50')
+    ),
+    xaxis = list(title = "Métrica"),
+    yaxis = list(title = "Valor"),
+    barmode = 'group',
+    legend = list(orientation = 'h', y = -0.15)
+  )
+
+fig_centralidad
+```
+
+## Robustez: Evolución de la Componente Gigante
+
+```{r dashboard-robustez, echo=FALSE, fig.height=6}
+# Gráfico interactivo de robustez
+fig_robustez <- plot_ly() %>%
+  add_trace(
+    data = res_vuln %>% filter(estrategia == "dirigido"),
+    x = ~frac_eliminada * 100,
+    y = ~tamano_gcc_rel * 100,
+    type = 'scatter',
+    mode = 'lines+markers',
+    name = 'Ataque Dirigido',
+    line = list(color = '#e74c3c', width = 3),
+    marker = list(size = 8, color = '#e74c3c'),
+    hovertemplate = paste(
+      '<b>Ataque Dirigido</b><br>',
+      'Nodos eliminados: %{x:.1f}%<br>',
+      'Tamaño GCC: %{y:.1f}%<br>',
+      '<extra></extra>'
+    )
+  ) %>%
+  add_trace(
+    data = res_vuln %>% filter(estrategia == "aleatorio"),
+    x = ~frac_eliminada * 100,
+    y = ~tamano_gcc_rel * 100,
+    type = 'scatter',
+    mode = 'lines+markers',
+    name = 'Fallo Aleatorio',
+    line = list(color = '#27ae60', width = 3),
+    marker = list(size = 8, color = '#27ae60'),
+    hovertemplate = paste(
+      '<b>Fallo Aleatorio</b><br>',
+      'Nodos eliminados: %{x:.1f}%<br>',
+      'Tamaño GCC: %{y:.1f}%<br>',
+      '<extra></extra>'
+    )
+  ) %>%
+  layout(
+    title = list(
+      text = "Robustez de la Red: Ataque Dirigido vs Fallo Aleatorio",
+      font = list(size = 18, color = '#2c3e50')
+    ),
+    xaxis = list(
+      title = "Fracción de Nodos Eliminados (%)",
+      gridcolor = '#ecf0f1',
+      showgrid = TRUE
+    ),
+    yaxis = list(
+      title = "Tamaño Relativo de la Componente Gigante (%)",
+      gridcolor = '#ecf0f1',
+      showgrid = TRUE
+    ),
+    legend = list(
+      x = 0.7,
+      y = 0.95,
+      bgcolor = 'rgba(255,255,255,0.8)',
+      bordercolor = '#2c3e50',
+      borderwidth = 1
+    ),
+    hovermode = 'closest',
+    plot_bgcolor = '#f8f9fa',
+    paper_bgcolor = '#ffffff'
+  )
+
+fig_robustez
+```
+
+
+## Distribución de Grados por Capa (Solo Nodos Activos)
+
+```{r dashboard-grados, echo=FALSE, fig.height=6}
+# CORRECCIÓN: Solo incluimos nodos con grado > 0
+grados_data <- data.frame(
+  Capa = c(
+    rep("Bus", sum(degree(g_bus) > 0)),
+    rep("Metro", sum(degree(g_metro) > 0)),
+    rep("BiciMAD", sum(degree(g_bicimad) > 0)),
+    rep("Parking", sum(degree(g_parking) > 0))
+  ),
+  Grado = c(
+    degree(g_bus)[degree(g_bus) > 0],
+    degree(g_metro)[degree(g_metro) > 0],
+    degree(g_bicimad)[degree(g_bicimad) > 0],
+    degree(g_parking)[degree(g_parking) > 0]
+  )
+)
+
+# Gráfico de violín interactivo
+fig_grados <- plot_ly(
+  grados_data,
+  x = ~Capa,
+  y = ~Grado,
+  color = ~Capa,
+  colors = c("#e74c3c", "#2c7bb6", "#27ae60", "#f39c12"),
+  type = 'violin',
+  box = list(visible = TRUE),
+  meanline = list(visible = TRUE)
+) %>%
+  layout(
+    title = list(
+      text = "Distribución de Grados por Capa (Solo Nodos Activos)",
+      font = list(size = 18, color = '#2c3e50')
+    ),
+    xaxis = list(title = "Capa de Transporte"),
+    yaxis = list(title = "Grado del Nodo"),
+    showlegend = FALSE
+  )
+
+fig_grados
+```
+
+## Relación Versatilidad vs Viajes
+
+```{r dashboard-versatilidad-viajes, echo=FALSE, fig.height=6}
+# Preparamos datos limpios para el gráfico
+datos_plot <- versatilidad_df %>%
+  filter(!is.na(versatilidad_grado) & !is.na(viajes_medios_por_persona)) %>%
+  select(versatilidad_grado, viajes_medios_por_persona, cluster_id)
+
+# Gráfico de dispersión interactivo
+fig_vers_viajes <- plot_ly(
+  datos_plot,
+  x = ~viajes_medios_por_persona,
+  y = ~versatilidad_grado,
+  type = 'scatter',
+  mode = 'markers',
+  marker = list(
+    size = 8,
+    color = ~versatilidad_grado,
+    colorscale = 'Viridis',
+    showscale = TRUE,
+    colorbar = list(title = "Versatilidad"),
+    line = list(color = 'white', width = 0.5)
+  ),
+  text = ~paste('Zona:', cluster_id, '<br>Viajes/persona:', round(viajes_medios_por_persona, 3), '<br>Versatilidad:', round(versatilidad_grado, 3)),
+  hoverinfo = 'text'
+) %>%
+  layout(
+    title = list(
+      text = "Relación entre Versatilidad y Viajes por Persona",
+      font = list(size = 18, color = '#2c3e50')
+    ),
+    xaxis = list(
+      title = "Viajes Medios por Persona",
+      gridcolor = '#ecf0f1'
+    ),
+    yaxis = list(
+      title = "Versatilidad de Grado",
+      gridcolor = '#ecf0f1'
+    ),
+    plot_bgcolor = '#f8f9fa',
+    paper_bgcolor = '#ffffff'
+  )
+
+fig_vers_viajes
+```
+
+
+
+## Resumen Ejecutivo
+
+```{r dashboard-resumen, echo=FALSE, results='asis'}
+cat('<div style="background-color: #ecf0f1; padding: 20px; border-radius: 10px; border-left: 5px solid #3498db; margin: 20px 0;">')
+cat('<h3 style="color: #2c3e50; margin-top: 0;">Conclusiones Clave del Dashboard</h3>')
+cat('<ul style="font-size: 14px; line-height: 1.8; color: #34495e;">')
+cat('<li><strong>Sistema Altamente Integrado:</strong> El 98.1% de las zonas (', max(components(g_agregado)$csize), ' de ', vcount(g_agregado), ') están conectadas en la componente gigante, demostrando una excelente cohesión del sistema.</li>')
+cat('<li><strong>Distribución por Modos:</strong> Bus (', sum(degree(g_bus) > 0), ' zonas), Metro (', sum(degree(g_metro) > 0), '), BiciMAD (', sum(degree(g_bicimad) > 0), '), Parking (', sum(degree(g_parking) > 0), '), reflejando la jerarquía y capilaridad de cada modo.</li>')
+cat('<li><strong>Hubs Multimodales:</strong> Las 10 zonas con mayor versatilidad (≈1.0) actúan como intercambiadores críticos que integran múltiples modos de transporte.</li>')
+cat('<li><strong>Desacoplamiento Infraestructura-Demanda:</strong> La movilidad per cápita es uniforme (≈2 viajes/día) independientemente de la versatilidad, indicando planificación estratégica sobre demanda reactiva.</li>')
+cat('<li><strong>Vulnerabilidad Diferencial:</strong> Alta robustez ante fallos aleatorios pero fragilidad extrema ante ataques dirigidos a nodos centrales, especialmente en metro.</li>')
+cat('<li><strong>Topología Small-World:</strong> Clustering moderado (0.33) y alta conectividad global confirman una estructura óptima para transporte urbano.</li>')
+cat('</ul>')
+cat('</div>')
+```
+### Resumen Ejecutivo
+
+El dashboard interactivo desarrollado permite explorar visualmente la estructura de la red multicapa de transporte de Madrid, revelando patrones estructurales clave del sistema urbano.
+
+### Hallazgos Principales
+
+**1. Alta Integración del Sistema**
+El análisis revela que la red de Madrid está altamente integrada, con un 98.1% de las 1,558 zonas de intercambio conectadas en una única componente gigante. Esta elevada conectividad (solo 30 zonas aisladas) demuestra la efectividad de la planificación del transporte madrileño, garantizando que prácticamente toda la ciudad sea accesible mediante el sistema multimodal.
+
+**2. Identificación de Hubs Multimodales Críticos**
+El análisis de versatilidad identifica 10 zonas estratégicas (IDs: 164, 446, 101, 41, 283, 56, 239, 814, 71, 534) con valores de entropía superiores a 0.99, indicando una presencia equilibrada de múltiples modos de transporte. Estas zonas actúan como **verdaderos intercambiadores multimodales** que vertebran el sistema.
+
+**3. Desacoplamiento entre Infraestructura y Demanda Individual**
+Un hallazgo fundamental es que la versatilidad de las zonas (complejidad multimodal) no correlaciona con la intensidad de viajes per cápita, que se mantiene uniforme en aproximadamente 2 viajes/día en todos los distritos (rango: 1.99-2.13). Esto demuestra que la ubicación de los intercambiadores responde a criterios estratégicos de planificación de red y accesibilidad global, no a una mayor demanda local.
+
+**4. Topología de Red de Mundo Pequeño**
+El coeficiente de clustering de 0.33 combinado con la alta conectividad global indica que Madrid presenta una topología de **red de mundo pequeño** (small-world network). Esta estructura, con alta conectividad local (clustering) y baja distancia global, es óptima para el transporte urbano, permitiendo desplazamientos eficientes con pocos transbordos.
+
+**5. Densidad Apropiada para Redes Espaciales**
+La baja densidad observada (0.29%) es coherente y apropiada para redes de transporte urbano basadas en proximidad espacial. A diferencia de redes abstractas, las redes de transporte solo conectan nodos geográficamente próximos, resultando naturalmente en bajas densidades que no comprometen la funcionalidad del sistema.
+
+### Implicaciones para la Gestión del Sistema
+
+1. **Protección de Nodos Críticos**: Las 10 zonas de mayor versatilidad identificadas deben considerarse críticas para la resiliencia del sistema y recibir atención prioritaria en mantenimiento y gestión de incidencias.
+
+2. **Planificación de Capacidad Uniforme**: La homogeneidad en viajes per cápita sugiere que las inversiones en capacidad deben distribuirse equilibradamente entre distritos, sin concentrarse solo en intercambiadores.
+
+3. **Valor de la Multimodalidad**: La alta versatilidad de ciertas zonas confirma el valor estratégico de invertir en intercambiadores multimodales que faciliten transbordos fluidos entre modos.
+
+### Nota sobre Metodología del Dashboard
+
+El dashboard implementado utiliza visualizaciones interactivas (plotly, DT) que permiten explorar dinámicamente los datos. Las métricas de centralidad, versatilidad y robustez se calculan sobre la red agregada multicapa, proporcionando una visión holística del sistema que no sería visible analizando cada modo de transporte por separado.
+
+La integración de datos de movilidad (viajes por distrito) con métricas estructurales de red permite conectar la topología de la infraestructura con los patrones reales de comportamiento de los usuarios, ofreciendo insights valiosos para la planificación urbana.
+
 
 # Conclusiones
 
