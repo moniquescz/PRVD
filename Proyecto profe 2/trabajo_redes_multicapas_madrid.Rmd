@@ -743,7 +743,7 @@ if (requireNamespace("rgl", quietly = TRUE)) {
     layer.colors = colores,
     layer.shift.x = 0,   # Sin shift horizontal extra
     layer.shift.y = 0,
-    layer.space = 10,    # Espacio vertical generoso relativo a la escala normalizada
+    layer.space = 5,    # Espacio vertical generoso relativo a la escala normalizada
   )
   
   # Ajustar vista
@@ -1765,6 +1765,9 @@ fig_capas <- plot_ly(
 fig_capas
 ```
 
+**Análisis de la Distribución:** La preponderancia de la capa de Autobús (representando la mayor fracción de nodos activos) confirma su rol de "malla capilar" que cubre la totalidad del territorio urbano. Por el contrario, el Metro y BiciMAD muestran una participación más selectiva, concentrándose en corredores de alta capacidad y en la almendra central respectivamente, lo que refleja una jerarquía funcional clara entre modos de cobertura extensiva vs. intensiva.
+
+
 ## Top 10 Zonas Más Versátiles
 
 ```{r dashboard-top-versatilidad, echo=FALSE}
@@ -1812,6 +1815,8 @@ datatable(
     textAlign = 'center'
   )
 ```
+
+**Interpretación del Ranking:** Las zonas que encabezan este ranking exhiben valores de versatilidad cercanos a 1 (máxima entropía), lo que indica que no dependen de un solo modo de transporte. Estos nodos actúan como verdaderas "rótulas" del sistema, permitiendo a los usuarios cambiar de red (ej. de Metro a BiciMAD) con fluidez. Su importancia es sistémica: son los puntos donde se "cosen" las diferentes capas de la ciudad.
 
 ## Análisis de Centralidad por Capa
 
@@ -1876,6 +1881,9 @@ fig_centralidad <- plot_ly(
 
 fig_centralidad
 ```
+
+**Comparativa de Centralidad:** Como se observa, la densidad y el grado medio varían drásticamente entre capas. La red de Autobuses presenta la mayor densidad de conexiones locales debido a la proximidad física de sus paradas, mientras que el Metro prioriza la eficiencia con menos conexiones pero más estratégicas. Esto valida numéricamente que cada capa tiene una topología optimizada para su función específica (cobertura local vs. velocidad a media distancia).
+
 
 ## Robustez: Evolución de la Componente Gigante
 
@@ -1944,6 +1952,9 @@ fig_robustez <- plot_ly() %>%
 fig_robustez
 ```
 
+**Diagnóstico de Vulnerabilidad:** Este gráfico es la evidencia más clara de la naturaleza "Scale-Free" del transporte madrileño. La divergencia extrema entre la línea de "Fallo Aleatorio" (que decae suavemente) y la de "Ataque Dirigido" (que colapsa la red eliminando apenas el 15% de los nodos) alerta sobre la fragilidad crítica de los hubs centrales. El sistema es robusto ante accidentes dispersos, pero necesita protección prioritaria en sus nodos vertebradores.
+
+
 
 ## Distribución de Grados por Capa (Solo Nodos Activos)
 
@@ -1987,6 +1998,9 @@ fig_grados <- plot_ly(
 
 fig_grados
 ```
+
+**Heterogeneidad de Grados:** Los diagramas de violín revelan que, mientras la red de Autobuses tiene una distribución de grados más ancha y variable (reflejando zonas de muy alta y muy baja densidad), el Metro y el Parking muestran distribuciones más compactas. BiciMAD presenta un comportamiento bimodal interesante, sugiriendo una clara distinción entre estaciones periféricas del sistema y las estaciones centrales hiper-conectadas.
+
 
 ## Relación Versatilidad vs Viajes
 
@@ -2038,6 +2052,9 @@ fig_vers_viajes <- plot_ly(
 
 fig_vers_viajes
 ```
+
+**Desacoplamiento Estructural:** La nube de puntos dispersa confirma la hipótesis de que *infraestructura* y *demanda* no siempre van de la mano. Existen zonas con alta versatilidad (eje Y alto) pero moderada demanda de viajes (eje X medio), que son infraestructuras estratégicas de conectividad más que destinos finales de masas. Esto sugiere una planificación que busca garantizar opciones de movilidad en toda la ciudad, no solo donde hay más viajeros.
+
 
 
 
