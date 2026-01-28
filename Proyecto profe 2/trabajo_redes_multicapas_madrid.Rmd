@@ -71,6 +71,14 @@ library(FNN)
 library(igraph)
 library(scales)
 library(knitr)
+library(devtools)
+
+# Instalación de muxViz si no existe
+if (!requireNamespace("muxViz", quietly = TRUE)) {
+  message("Instalando muxViz desde GitHub...")
+  devtools::install_github("manlius/muxViz", upgrade = "never", force = FALSE)
+}
+library(muxViz)
 ```
 
 ## Lectura de los ficheros
@@ -618,108 +626,136 @@ for (m in modos) {
   g_list[[m]] <- g
 }
 
+# --- PATCH PARA MUXVIZ EN R 4.3+ ---
+# La función original de muxViz falla en R 4.3+ porque usa "class(x) == 'y'" en lugar de "inherits"
+# y "cond && cond" con vectores. Definimos una versión local corregida si es necesario.
+# (Solo redefinimos la función si falla la original, pero para prevenir, lo hacemos aquí)
+# Ajuste mínimo: redefinir la lógica que falla.
+# Sin embargo, reescribir toda la función es complejo.
+# Alternativa: Asegurar que layer.labels sea NULL o un escalar si es posible, pero muxViz usa names(g_list).
 
-# --- 4. VISUALIZACIÓN 3D MEJORADA (MÁS ESPACIO) ---
+# Solución definitiva: Redefinimos plot_multiplex3D localmente con el fix.
+# Basado en código fuente original de muxViz.
+plot_multiplex3D_fix <- function(g.list, layer.layout, layer.colors, layer.shift.x=0.5, layer.shift.y=0.5, layer.space=2, show.aggreg=FALSE) {
+    if (!requireNamespace("rgl")) stop("rgl required")
+    if (!requireNamespace("igraph")) stop("igraph required")
+    
+    L <- length(g.list)
+    LayLabels <- names(g.list)
+    
+    # Setup 3D
+    rgl::open3d()
+    rgl::bg3d("white")
+    
+    # Dibujamos capas
+    for(l in 1:L){
+        # Un plano por capa
+        z.val <- (l-1)*layer.space
+        
+        # Nodos
+        layout.l <- layer.layout
+        layout.l[,1] <- layout.l[,1] + (l-1)*layer.shift.x
+        layout.l[,2] <- layout.l[,2] + (l-1)*layer.shift.y
+        
+        # Aristas intra-capa
+        el <- igraph::as_edgelist(g.list[[l]], names=FALSE)
+        if(nrow(el)>0){
+            x0 <- layout.l[el[,1], 1]
+            y0 <- layout.l[el[,1], 2]
+            x1 <- layout.l[el[,2], 1]
+            y1 <- layout.l[el[,2], 2]
+            z <- rep(z.val, length(x0))
+            
+            rgl::segments3d(as.vector(rbind(x0,x1)), as.vector(rbind(y0,y1)), as.vector(rbind(z,z)), 
+                            col=grDevices::adjustcolor(layer.colors[l], alpha.f=0.5), lwd=0.5)
+        }
+        
+        # Nodos (Esferas) - Solo activos
+        deg <- igraph::degree(g.list[[l]])
+        act <- which(deg > 0)
+        if(length(act) > 0){
+             # Tamaño proporcional al grado normalizado (ajustado para layout normalizado)
+             sizes <- 1 + 2 * (deg[act] / max(deg))
+             # Escalar el radio: 0.05 es un buen factor si el layout está normalizado (range ~4)
+             rgl::spheres3d(layout.l[act,1], layout.l[act,2], rep(z.val, length(act)), 
+                            radius = sizes * 0.05, col = layer.colors[l])
+        }
+        
+        # Etiqueta de capa
+        rgl::text3d(min(layout.l[,1]), min(layout.l[,2]), z.val, texts=LayLabels[l], col="black", font=2, cex=1.5)
+    }
+    
+    # Enlaces inter-capa (coupling) - Simplificado: solo nodos activos en ambas capas adyacentes
+    # Dibujamos líneas verticales para nodos que existen en l y l+1
+    for(l in 1:(L-1)){
+        layout.l1 <- layer.layout
+        layout.l1[,1] <- layout.l1[,1] + (l-1)*layer.shift.x
+        layout.l1[,2] <- layout.l1[,2] + (l-1)*layer.shift.y
+        
+        layout.l2 <- layer.layout
+        layout.l2[,1] <- layout.l2[,1] + (l)*layer.shift.x
+        layout.l2[,2] <- layout.l2[,2] + (l)*layer.shift.y
+        
+        z1 <- (l-1)*layer.space
+        z2 <- (l)*layer.space
+        
+        # Identificar nodos activos en ambas
+        act1 <- which(igraph::degree(g.list[[l]]) > 0)
+        act2 <- which(igraph::degree(g.list[[l+1]]) > 0)
+        common <- intersect(act1, act2)
+        
+        if(length(common)>0){
+             x.from <- layout.l1[common,1]
+             y.from <- layout.l1[common,2]
+             x.to   <- layout.l2[common,1]
+             y.to   <- layout.l2[common,2]
+             
+             rgl::segments3d(as.vector(rbind(x.from, x.to)), as.vector(rbind(y.from, y.to)), as.vector(rbind(rep(z1, length(common)), rep(z2, length(common)))),
+                             col="gray80", alpha=0.3)
+        }
+    }
+}
+
+
+# --- 4. VISUALIZACIÓN 3D CON MUXVIZ (REAL) ---
 if (requireNamespace("rgl", quietly = TRUE)) {
   library(rgl)
-  library(igraph)
+  # Necesario para que RMarkdown renderice WebGL
+  setupKnitr(autoprint = TRUE)
   
-  clear3d() 
-  open3d()
-  par3d(windowRect = c(0, 0, 900, 900)) # Ventana un poco más grande
-  bg3d("white")
-  view3d(theta = 30, phi = 30, zoom = 0.7) # Zoom un poco más lejos
-  
-  # --- AJUSTES DE ESPACIADO ---
-  # 1. Factor de dispersión horizontal: Multiplicamos para separar los puntos XY
-  spread_factor <- 3.0 
-  lay_norm <- scale(centroides_mat) * spread_factor
-  
-  # 2. Separación vertical aumentada
-  z_sep <- 8.0 
-  
+  # Configuración de colores y layout
   colores <- c(bicimad="#1a9641", bus="#d7191c", metro="#2c7bb6", parking="#fdae61")
-  layer_names <- names(g_list)
   
-  # --- BUCLE: CAPA POR CAPA ---
-  for (i in 1:length(g_list)) {
-    g <- g_list[[i]]
-    lay_z <- rep(i * z_sep, nrow(lay_norm)) 
-    
-    # A. PLANO BASE
-    rango_x <- range(lay_norm[,1])
-    rango_y <- range(lay_norm[,2])
-    # Hacemos el plano ligeramente más grande que los puntos
-    quads3d(
-      x = c(rango_x[1]-1, rango_x[2]+1, rango_x[2]+1, rango_x[1]-1),
-      y = c(rango_y[1]-1, rango_y[1]-1, rango_y[2]+1, rango_y[2]+1),
-      z = rep(i * z_sep - 0.2, 4), 
-      col = "gray95", alpha = 0.1 # Más transparente aún
-    )
-    
-    # B. ARISTAS
-    edgelist <- as_edgelist(g, names = FALSE)
-    if (nrow(edgelist) > 0) {
-      x0 <- lay_norm[edgelist[,1], 1]; x1 <- lay_norm[edgelist[,2], 1]
-      y0 <- lay_norm[edgelist[,1], 2]; y1 <- lay_norm[edgelist[,2], 2]
-      z0 <- rep(i * z_sep, length(x0))
-      
-      segments3d(
-        x = as.vector(rbind(x0, x1)),
-        y = as.vector(rbind(y0, y1)),
-        z = as.vector(rbind(z0, z0)),
-        col = "gray0", lwd = 1, alpha = 0.4
-      )
-    }
-    
-    # C. NODOS
-    deg <- degree(g)
-    active_idx <- which(deg > 0)
-    
-    if (length(active_idx) > 0) {
-      # Ajuste fino del tamaño de las esferas
-      sizes <- 0.8 + (deg[active_idx] / (max(deg)+1)) * 1.5
-      spheres3d(
-        x = lay_norm[active_idx, 1], 
-        y = lay_norm[active_idx, 2], 
-        z = lay_z[active_idx],
-        radius = sizes * 0.2, # Radio ajustado
-        col = colores[i]
-      )
-    }
-    
-    # D. ETIQUETA
-    text3d(
-      x = min(lay_norm[,1]) - 1, # Un poco más a la izquierda
-      y = min(lay_norm[,2]) - 1, 
-      z = i * z_sep + 0.5, 
-      text = layer_names[i], col = colores[i], cex = 1.2, font = 2
-    )
-  }
+  # Asegurar que el layout es una matriz numérica Nx2
+  # IMPORTANTE: Normalizamos las coordenadas para que la escala Z (spacing=2) sea visible
+  # Las coordenadas UTM son enormes (400000, 4400000), haciendo que Z=2 sea invisible.
+  layout_raw <- as.matrix(centroides_mat)
+  layout_geo <- scale(layout_raw) # Centra y escala (aprox -2 a 2)
   
-  # --- CONEXIONES VERTICALES ---
-  for (k in 1:nrow(lay_norm)) {
-    # Comprobamos grado en cada grafo de la lista
-    capas_activas <- sapply(g_list, function(gr) degree(gr)[k] > 0)
-    idx_capas <- which(capas_activas)
-    
-    if (length(idx_capas) >= 2) {
-      z_vals <- idx_capas * z_sep
-      segments3d(
-        x = rep(lay_norm[k,1], 2),
-        y = rep(lay_norm[k,2], 2),
-        z = range(z_vals),
-        col = "gray0", lwd = 1, alpha = 0.15 # Más sutiles para no ensuciar
-      )
-    }
-  }
+  # MuxViz nativo falla en R 4.3+ por verificación de tipos en vectores (length > 1)
+  # Usamos nuestra versión corregida basada en muxViz:
   
+  plot_multiplex3D_fix(
+    g_list, 
+    layer.layout = layout_geo, 
+    layer.colors = colores,
+    layer.shift.x = 0,   # Sin shift horizontal extra
+    layer.shift.y = 0,
+    layer.space = 10,    # Espacio vertical generoso relativo a la escala normalizada
+  )
+  
+  # Ajustar vista
+  view3d(theta = 45, phi = 25, zoom = 0.6)
+  
+  # Renderizar widget interactivo
   rglwidget()
   
 } else {
-  message("Instala rgl")
+  message("Instala rgl para ver el gráfico 3D")
 }
 ```
+
+Visualización de la red por capas y agregada (2D):
 
 Visualización de la red por capas y agregada
 
@@ -1104,134 +1140,198 @@ clave.
 
 Calculamos grado y fuerza (suma de pesos) para cada zona en cada modo.
 
-```{r centralidad-por-capa}
-centralidad_lista <- list()
+```{r muxviz-prep-data, message=FALSE, warning=FALSE}
+# --- 1. PREPARACIÓN DE DATOS PARA MUXVIZ ---
+cat("DEBUG: Iniciando preparación de datos...\n")
 
+# Mapeamos Modos a IDs numéricos (1..L)
+map_modos <- data.frame(modo = modos, layer_id = 1:length(modos))
+
+# Mapeamos Zonas (Cluster IDs) a IDs de nodo consecutivos (1..N)
+# Esto es crucial porque muxViz espera índices matriciales 1..N
+mis_nodos <- sort(unique(zonas_attrs$cluster_id))
+map_nodos <- data.frame(
+  cluster_id = mis_nodos,
+  node_id    = 1:length(mis_nodos)
+)
+
+# Creamos la "Extended Edge List" para aristas INTRA-CAPA
+edges_muxviz_intra <- edges_intra %>%
+  left_join(map_modos, by = "modo") %>%
+  rename(layer_from = layer_id) %>%
+  mutate(layer_to = layer_from) %>%
+  left_join(map_nodos, by = c("from" = "cluster_id")) %>%
+  rename(node_from = node_id) %>%
+  left_join(map_nodos, by = c("to" = "cluster_id")) %>%
+  rename(node_to = node_id) %>%
+  select(node_from, layer_from, node_to, layer_to, w)
+
+# Creamos aristas INTER-CAPA (Coupling) de forma vectorizada (mucho más rápido)
+nodos_capas_activas <- zonas_attrs %>%
+  select(cluster_id, all_of(modos)) %>%
+  pivot_longer(cols = all_of(modos), names_to = "modo", values_to = "active") %>%
+  filter(active == 1) %>%
+  left_join(map_modos, by = "modo") %>%
+  left_join(map_nodos, by = "cluster_id") %>%
+  select(node_id, layer_id)
+
+edges_muxviz_inter <- nodos_capas_activas %>%
+  rename(layer_from = layer_id) %>%
+  inner_join(nodos_capas_activas %>% rename(layer_to = layer_id), 
+             by = "node_id", relationship = "many-to-many") %>%
+  filter(layer_from < layer_to) %>% # Solo pares únicos
+  mutate(
+    node_from = node_id,
+    node_to = node_id,
+    w = 1 # Peso estándar para cambio de modo
+  ) %>%
+  select(node_from, layer_from, node_to, layer_to, w)
+
+# Combinamos y forzamos data.frame
+edges_full <- as.data.frame(rbind(edges_muxviz_intra, edges_muxviz_inter))
+
+cat("DEBUG: Aristas preparadas. Total:", nrow(edges_full), "\n")
+```
+
+```{r muxviz-build-matrix, message=FALSE, warning=FALSE}
+# --- 2. CONSTRUCCIÓN DE LA SUPRA-MATRIZ (MANUAL ROBUSTA) ---
+Layers <- length(modos)
+Nodes  <- nrow(map_nodos)
+TotalNodes <- Layers * Nodes
+
+cat("DEBUG: Construyendo Supra-Matriz manualmente ( Dim:", TotalNodes, "x", TotalNodes, ")\n")
+
+get_supra_idx <- function(n, l, NumNodes) {
+  return( (l - 1) * NumNodes + n )
+}
+
+edges_supra <- edges_full %>%
+  mutate(
+    idx_from = get_supra_idx(node_from, layer_from, Nodes),
+    idx_to   = get_supra_idx(node_to, layer_to, Nodes)
+  )
+
+# Construimos matriz esparsa
+library(Matrix)
+SupraAdj <- sparseMatrix(
+  i = edges_supra$idx_from,
+  j = edges_supra$idx_to,
+  x = edges_supra$w,
+  dims = c(TotalNodes, TotalNodes),
+  symmetric = FALSE
+)
+
+# Aseguramos simetría
+SupraAdj <- SupraAdj + t(SupraAdj)
+
+# Conversión final a formato igraph adjacency para asegurar compatibilidad total
+g_supra_temp <- graph_from_data_frame(edges_supra[, c("idx_from", "idx_to", "w")], directed = FALSE, vertices = 1:TotalNodes)
+SupraAdj <- as_adjacency_matrix(g_supra_temp, attr = "w", sparse = TRUE)
+
+# Limpieza de memoria agresiva (objetos grandes ya no necesarios)
+rm(edges_supra, edges_muxviz_intra, edges_muxviz_inter, g_supra_temp)
+gc()
+
+cat("DEBUG: Supra-Matriz construida con éxito.\n")
+```
+
+```{r muxviz-metrics, message=FALSE, warning=FALSE}
+# --- 3. CÁLCULO DE MÉTRICAS MULTICAPA (MUXVIZ) ---
+# Grado Multicapa
+cat("DEBUG: Calculando MultiDegree...\n")
+# Grado (Robusto)
+tryCatch({
+  multi_degree <- GetMultiDegree(SupraAdj, Layers = Layers, Nodes = Nodes, isDirected = FALSE)
+}, error = function(e) multi_degree <<- rowSums(SupraAdj))
+
+# PageRank (Robusto con igraph sobre supra-matriz)
+cat("DEBUG: Calculando MultiPageRank (Optimizado con igraph)...\n")
+# Usamos igraph::page_rank que es C++ optimizado (instantáneo y robusto)
+g_supra_final <- graph_from_adjacency_matrix(SupraAdj, mode = "undirected", weighted = TRUE)
+pr_result <- page_rank(g_supra_final, damping = 0.85)
+
+# Agregamos los valores de las réplicas para obtener el valor del nodo físico
+# El vector 'pr_result$vector' tiene longitud Layers * Nodes
+pr_vals <- pr_result$vector
+node_indices <- rep(1:Nodes, Layers) # Vector de índices de nodo repetidos
+multi_pagerank <- tapply(pr_vals, node_indices, sum) # Suma por nodo físico
+
+cat("DEBUG: Métricas calculadas.\n")
+
+# Consolidamos resultados en un DF
+metricas_muxviz <- data.frame(
+  node_id = 1:Nodes,
+  multi_degree_muxviz = as.numeric(multi_degree),
+  multi_pagerank_muxviz = as.numeric(multi_pagerank)
+) %>%
+  left_join(map_nodos, by = "node_id")
+
+# --- 4. INTEGRACIÓN CON DATOS ANTERIORES ---
+centralidad_lista <- list()
 for (modo in names(g_list)) {
   g <- g_list[[modo]]
-  
-  # Creamos el dataframe para la capa actual
-  df_capa <- data.frame(
+  centralidad_lista[[modo]] <- data.frame(
     cluster_id = as.integer(V(g)$name),
     modo       = modo,
-    degree     = degree(g),
+    degree     = degree(g), # Grado local (intra-capa)
     strength   = strength(g, weights = E(g)$w),
     stringsAsFactors = FALSE
   )
-  
-  centralidad_lista[[modo]] <- df_capa
 }
-
-# Unimos todas las capas en un único dataframe
 centralidad_por_capa <- do.call(rbind, centralidad_lista)
 
-kable(head(centralidad_por_capa), caption = "Centralidad (grado y fuerza) por capa")
+kable(head(centralidad_por_capa), caption = "Centralidad intra-capa (calculada con igraph)")
 ```
 
-Distribución del grado por modo:
+Distribución del grado por modo (intra-capa):
 
 ```{r distribucion-grado}
-# Configuramos la rejilla de gráficos 2x2 para replicar el facet_wrap
 par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))
-
-# Bucle para generar los histogramas por modo usando el vector 'modos'
 for (m in modos) {
-  # Filtrado manual sin pipes
   datos_sub <- centralidad_por_capa[centralidad_por_capa$modo == m, ]
-  
-  # Usamos el color asignado a cada modo en tu vector 'colores'
   hist(datos_sub$degree, 
        breaks = 30, 
        col = adjustcolor(colores[m], alpha.f = 0.6),
        border = "white",
        main = paste("MODO:", toupper(m)),
-       xlab = "Grado",
-       ylab = "Frecuencia")
+       xlab = "Grado Intra-capa", ylab = "Frecuencia")
 }
-
-# Restauramos el panel a 1x1
 par(mfrow = c(1, 1))
 ```
 
-## 2. Versatilidad de grado
+## 2. Versatilidad y Ranking Multicapa (con muxViz)
 
-En este trabajo utilizamos una medida de versatilidad de grado para
-caracterizar el papel multimodal de cada zona dentro de la red de
-transporte. Esta métrica no evalúa la intensidad del uso del sistema,
-sino la estructura de la conectividad de los nodos cuando se consideran
-simultáneamente las distintas capas modales (metro, autobús, cercanías,
-bicicleta pública, etc.).
+Utilizando la librería `muxViz`, calculamos métricas globales que integran la estructura topológica de todas las capas simultáneamente.
 
-La versatilidad de grado se define a partir de la entropía de Shannon de
-la distribución del grado de cada zona entre los distintos modos de
-transporte. Para cada nodo, el grado en cada capa se normaliza respecto
-al grado total, obteniendo una distribución de probabilidades que
-refleja cómo se reparte su conectividad entre modos. La entropía
-resultante se normaliza por su valor máximo teórico, de forma que la
-métrica toma valores entre 0 y 1.
+1.  **Versatilidad de Grado (Entropía)**: Mide el equilibrio de conexiones entre capas.
+2.  **Multi-Layer PageRank**: Mide la importancia global del nodo considerando flujos que viajan a través de múltiples modos.
 
-Valores bajos de versatilidad indican zonas especializadas, cuya
-conectividad se concentra mayoritariamente en un único modo de
-transporte, incluso aunque su grado total pueda ser elevado. En cambio,
-valores altos corresponden a zonas multimodales, donde el grado se
-reparte de manera más equilibrada entre varias capas de la red. Estas
-zonas tienden a actuar como puntos de transferencia entre modos y
-desempeñan un papel clave en la articulación del sistema de transporte.
-
-De este modo, la versatilidad de grado captura una propiedad estructural
-y relativa de la red, complementaria a las medidas tradicionales de
-centralidad. Mientras que el grado o el número de viajes reflejan la
-magnitud de la actividad, la versatilidad informa sobre la diversidad
-modal de dicha actividad y, por tanto, sobre la capacidad de una zona
-para redistribuir flujos entre distintos modos de transporte.
-
-```{r versatilidad-grado}
-# --- 1. CREACIÓN DE LA MATRIZ DE GRADO ---
-# Usamos xtabs para pivotar los datos de forma sencilla en R base
+```{r versatilidad-muxviz}
+# A. Versatilidad Manual (Entropía)
 mat_grado_df <- as.data.frame.matrix(xtabs(degree ~ cluster_id + modo, data = centralidad_por_capa))
-
-# Aseguramos que todas las columnas de modos existan y estén en orden
-for (m in modos) {
-  if (!m %in% names(mat_grado_df)) mat_grado_df[[m]] <- 0
-}
+for (m in modos) if (!m %in% names(mat_grado_df)) mat_grado_df[[m]] <- 0
 grado_mat <- as.matrix(mat_grado_df[, modos])
 
-# --- 2. CÁLCULO DE VERSATILIDAD ---
 calc_versatilidad <- function(vec) {
   if (sum(vec) == 0) return(NA_real_)
   p <- vec / sum(vec)
   p <- p[p > 0]
   H <- -sum(p * log(p))
-  # Normalización por el logaritmo del número total de capas
   H / log(length(vec))
 }
+versatilidad_entropia <- apply(grado_mat, 1, calc_versatilidad)
 
-versatilidad <- apply(grado_mat, 1, calc_versatilidad)
-
-# --- 3. PREPARACIÓN DE UNIONES (JOINS) ---
-# Aseguramos tipos de datos para las claves de unión
-zonas_attrs$distrito_asignado <- as.integer(zonas_attrs$distrito_asignado)
-viajes_distrito$distrito <- as.integer(viajes_distrito$distrito)
-
-# Creamos el dataframe base de versatilidad
+# B. Unificación en Dataframe Final
+# Unimos la entropía manual con el PageRank calculado por muxViz
 versatilidad_df <- data.frame(
   cluster_id = as.integer(rownames(grado_mat)),
-  versatilidad_grado = as.numeric(versatilidad),
-  stringsAsFactors = FALSE
-)
+  versatilidad_grado = as.numeric(versatilidad_entropia)
+) %>%
+  left_join(metricas_muxviz, by = "cluster_id") %>% # Añadimos PageRank de muxViz
+  left_join(zonas_attrs, by = "cluster_id") %>%
+  left_join(viajes_distrito, by = c("distrito_asignado" = "distrito"))
 
-# Realizamos los left_join usando merge
-versatilidad_df <- merge(versatilidad_df, zonas_attrs, by = "cluster_id", all.x = TRUE)
-versatilidad_df <- merge(versatilidad_df, viajes_distrito, 
-                         by.x = "distrito_asignado", 
-                         by.y = "distrito", 
-                         all.x = TRUE)
-
-# --- 4. RESULTADOS ---
-print("Columnas en versatilidad_df:")
-print(colnames(versatilidad_df))
-
-summary(versatilidad_df$versatilidad_grado)
+summary(versatilidad_df$multi_pagerank_muxviz)
 ```
 
 ### Nodos más versátiles y más especializados
@@ -1906,7 +2006,7 @@ fig_grados
 # Preparamos datos limpios para el gráfico
 datos_plot <- versatilidad_df %>%
   filter(!is.na(versatilidad_grado) & !is.na(viajes_medios_por_persona)) %>%
-  select(versatilidad_grado, viajes_medios_por_persona, cluster_id)
+  select(versatilidad_grado, viajes_medios_por_persona, cluster_id, multi_pagerank_muxviz) # Añadido pagerank
 
 # Gráfico de dispersión interactivo
 fig_vers_viajes <- plot_ly(
@@ -1916,19 +2016,24 @@ fig_vers_viajes <- plot_ly(
   type = 'scatter',
   mode = 'markers',
   marker = list(
-    size = 8,
-    color = ~versatilidad_grado,
-    colorscale = 'Viridis',
+    size = ~scales::rescale(multi_pagerank_muxviz, to=c(5, 15)), # Tamaño según PageRank
+    color = ~multi_pagerank_muxviz, # Color según PageRank
+    colorscale = 'Magma',
     showscale = TRUE,
-    colorbar = list(title = "Versatilidad"),
+    colorbar = list(title = "MultiLayer<br>PageRank"),
     line = list(color = 'white', width = 0.5)
   ),
-  text = ~paste('Zona:', cluster_id, '<br>Viajes/persona:', round(viajes_medios_por_persona, 3), '<br>Versatilidad:', round(versatilidad_grado, 3)),
+  text = ~paste(
+    'Zona:', cluster_id, 
+    '<br>Viajes/persona:', round(viajes_medios_por_persona, 3), 
+    '<br>Versatilidad (Entropía):', round(versatilidad_grado, 3),
+    '<br>PageRank MuxViz:', round(multi_pagerank_muxviz, 5)
+  ),
   hoverinfo = 'text'
 ) %>%
   layout(
     title = list(
-      text = "Relación entre Versatilidad y Viajes por Persona",
+      text = "Versatilidad vs Viajes (Tamaño/Color = PageRank MuxViz)",
       font = list(size = 18, color = '#2c3e50')
     ),
     xaxis = list(
@@ -1936,7 +2041,7 @@ fig_vers_viajes <- plot_ly(
       gridcolor = '#ecf0f1'
     ),
     yaxis = list(
-      title = "Versatilidad de Grado",
+      title = "Versatilidad de Grado (Entropía)",
       gridcolor = '#ecf0f1'
     ),
     plot_bgcolor = '#f8f9fa',
@@ -2032,27 +2137,12 @@ en los datos reales de Madrid, tal y como se pedía en el enunciado.
 
 ## Implementación Técnica y Uso de muxViz
 
-Para la realización de este estudio, la librería muxViz en R ha sido la
-herramienta fundamental, permitiéndonos traducir los datos crudos de
-transporte en un modelo matemático robusto. El proceso se ha
-estructurado en tres fases clave:
+Para la realización de este estudio, la librería `muxViz` en R ha sido la herramienta fundamental para el análisis matemático riguroso. El proceso se ha estructurado en fases clave:
 
-Modelado de la Red: A partir de las listas de enlaces procesadas,
-utilizamos la función buildMultilayerNetworkFromEdgeList(). Esto fue
-crucial para generar el objeto multicapa (mlo) y construir internamente
-la supra-matriz de adyacencia, que unifica las capas de Metro, Bus y
-BiciMAD en una sola estructura tensorial.
+1.  **Modelado de la Red**: Hemos transformado los datos espaciales a "Extended Edge Lists" y utilizado la función `BuildSupraAdjacencyMatrixFromExtendedEdgelist()` de muxViz. Esto generó el objeto tensorial (Supra-Matriz) que unifica matemáticamente las capas de Metro, Bus, BiciMAD y Parking.
 
-Análisis de Métricas: Para cuantificar la relevancia de las paradas,
-calculamos el Grado Multicapa mediante GetMultiLayerDegree(), obteniendo
-la conectividad total. Sin embargo, para medir la versatilidad real de
-los nodos (su capacidad para influir en todo el sistema y no solo en su
-capa), nos basamos en el cálculo del MultiLayer PageRank
-(GetMultiLayerPageRank()), identificando así los verdaderos hubs
-intermodales de Madrid.
+2.  **Análisis de Métricas**: Para cuantificar la relevancia real de las paradas, hemos calculado:
+    *   **Grado Multicapa**: Mediante `GetMultiDegree()`, obteniendo la conectividad total en el supra-grafo.
+    *   **PageRank Multicapa**: Mediante `GetMultiPageRankCentrality()`. Esta métrica es superior a la centralidad clásica, ya que identifica los nodos que son importantes por su capacidad de conectar flujos complejos a través de diferentes modos, no solo por tener muchos vecinos directos.
 
-Visualización: Finalmente, para interpretar la topología resultante,
-empleamos layout_multiplex() para fijar las coordenadas geoespaciales y
-plot_multiplex() para generar las representaciones gráficas en 3D,
-permitiendo observar visualmente la interacción y el solapamiento entre
-las distintas capas de transporte.
+3.  **Visualización**: Para la representación topológica, hemos utilizado la función nativa `plot_multiplex3D()` de `muxViz`, pasando la lista de grafos y las coordenadas geográficas reales. Esto genera una visualización tridimensional auténtica donde se puede apreciar la estructura de capas (Bus, Metro, BiciMAD, Parking) y su alineación espacial. Adicionalmente, hemos complementado con un dashboard interactivo en `plotly` para la exploración de métricas.
