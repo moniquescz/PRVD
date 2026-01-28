@@ -1,0 +1,356 @@
+---
+title: "Dashboard: Red Multicapa de Transporte - Madrid"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: rows
+    vertical_layout: fill
+    theme: cosmo
+    storyboard: true
+---
+
+```{r setup, include=FALSE}
+# ==============================================================================
+# 1. CONFIGURACIÓN Y CARGA DE DATOS
+# ==============================================================================
+
+library(flexdashboard)
+library(tidyverse)
+library(janitor)
+library(sf)
+library(dbscan)
+library(FNN)
+library(igraph)
+library(scales)
+library(knitr)
+library(tibble)
+library(Matrix)
+library(plotly)
+library(DT)
+library(htmltools)
+library(crosstalk)
+
+# Asegurar reproducibilidad
+set.seed(123)
+
+# Carga de Ficheros (Rutas relativas asumidas en el mismo directorio)
+transporte_raw <- read.csv("transporte_madrid_consolidado.csv", sep = ";")
+viajes_raw     <- read.csv("viajes_madrid.csv", sep = ";")
+
+# ==============================================================================
+# 2. PROCESAMIENTO DE DATOS (REPLICADO DEL ANÁLISIS PRINCIPAL)
+# ==============================================================================
+
+# --- LIMPIEZA INICIAL ---
+transporte <- clean_names(transporte_raw)
+transporte$transport_mode <- str_trim(transporte$transport_mode)
+transporte$transport_mode <- str_extract(transporte$transport_mode, "\\w+")
+
+viajes <- clean_names(viajes_raw)
+# Corrección de formatos en viajes
+viajes$personas <- as.numeric(gsub(",", ".", as.character(viajes$personas)))
+viajes$viajes_cat <- case_when(
+  viajes$numero_viajes == "0"  ~ 0,
+  viajes$numero_viajes == "1"  ~ 1,
+  viajes$numero_viajes == "2"  ~ 2,
+  viajes$numero_viajes == "2+" ~ 3,
+  TRUE ~ NA_real_
+)
+viajes_distrito <- aggregate(
+  cbind(personas, viajes_totales = viajes_cat * personas) ~ distrito, 
+  data = viajes, FUN = sum, na.rm = TRUE
+)
+viajes_distrito$viajes_medios_por_persona <- viajes_distrito$viajes_totales / viajes_distrito$personas
+
+# --- DEFINICIÓN DE ZONAS (CLUSTERING) ---
+transporte_sf <- st_as_sf(transporte, coords = c("stop_lon", "stop_lat"), crs = 4326, remove = FALSE)
+transporte_sf <- st_transform(transporte_sf, 25830)
+coords_m <- st_coordinates(transporte_sf)
+db <- dbscan(as.matrix(coords_m), eps = 150, minPts = 2)
+transporte_sf$cluster_id <- db$cluster
+max_id <- max(transporte_sf$cluster_id)
+es_ruido <- transporte_sf$cluster_id == 0
+transporte_sf$cluster_id[es_ruido] <- max_id + seq_len(sum(es_ruido))
+
+df_no_geo <- st_drop_geometry(transporte_sf)
+zonas <- aggregate(cbind(stop_lat, stop_lon) ~ cluster_id, data = df_no_geo, FUN = mean)
+distritos_freq <- aggregate(distrito_asignado ~ cluster_id, data = df_no_geo, 
+                            FUN = function(x) as.integer(names(which.max(table(x)))))
+modos_agg <- aggregate(transport_mode ~ cluster_id, data = df_no_geo, 
+                       FUN = function(x) paste(sort(unique(x)), collapse = ","))
+zonas <- merge(zonas, distritos_freq, by = "cluster_id")
+zonas <- merge(zonas, modos_agg, by = "cluster_id")
+
+# --- ATRIBUTOS DE NODOS ---
+modos <- sort(unique(transporte_sf$transport_mode))
+df_tab <- as.data.frame.matrix(table(transporte_sf$cluster_id, transporte_sf$transport_mode))
+df_tab[df_tab > 0] <- 1
+df_tab$cluster_id <- as.numeric(rownames(df_tab))
+zonas_attrs <- merge(zonas, df_tab, by = "cluster_id", all.x = TRUE)
+zonas_attrs[modos][is.na(zonas_attrs[modos])] <- 0
+
+# --- CONSTRUCCIÓN DE LA RED (KN-EDGES) ---
+centroides_mat <- st_coordinates(st_transform(st_as_sf(zonas, coords=c("stop_lon", "stop_lat"), crs=4326), 25830))
+zonas_centroides <- data.frame(cluster_id = zonas$cluster_id, x = centroides_mat[, 1], y = centroides_mat[, 2])
+
+build_edges_simple <- function(modo_nombre, k = 3) {
+  ids_con_modo <- zonas_attrs$cluster_id[zonas_attrs[[modo_nombre]] == 1]
+  if (length(ids_con_modo) < 2) return(data.frame())
+  coords <- zonas_centroides[zonas_centroides$cluster_id %in% ids_con_modo, ]
+  
+  lista_aristas <- list()
+  for (i in 1:nrow(coords)) {
+    punto_origen <- coords[i, ]
+    distancias <- sqrt((punto_origen$x - coords$x)^2 + (punto_origen$y - coords$y)^2)
+    df_dist <- data.frame(modo = modo_nombre, from = punto_origen$cluster_id, to = coords$cluster_id, dist = distancias)
+    df_dist <- df_dist[df_dist$from != df_dist$to, ]
+    lista_aristas[[i]] <- head(df_dist[order(df_dist$dist), ], k)
+  }
+  resultado <- do.call(rbind, lista_aristas)
+  resultado$w <- 1 / (1 + resultado$dist)
+  return(resultado)
+}
+
+edges_intra_lista <- list()
+for (m in modos) edges_intra_lista[[m]] <- build_edges_simple(m)
+edges_intra <- do.call(rbind, edges_intra_lista)
+
+# --- CONSTRUCCIÓN DE GRAFOS (IGRAPH) ---
+nodos_ids <- zonas_attrs$cluster_id
+build_graph_simple <- function(nombre_modo) {
+  filas_modo <- edges_intra[edges_intra$modo == nombre_modo, ]
+  g <- graph_from_data_frame(filas_modo[, c("from", "to", "w")], directed = FALSE, vertices = zonas_attrs)
+  nodos_en_grafo <- as.integer(V(g)$name)
+  faltantes <- nodos_ids[!(nodos_ids %in% nodos_en_grafo)]
+  if (length(faltantes) > 0) g <- g + vertices(as.character(faltantes))
+  return(g)
+}
+
+g_list <- list()
+for (m in modos) g_list[[m]] <- build_graph_simple(m)
+g_bus <- g_list[["bus"]]; g_metro <- g_list[["metro"]]; g_bicimad <- g_list[["bicimad"]]; g_parking <- g_list[["parking"]]
+
+# --- RED AGREGADA ---
+adj_list <- lapply(g_list, function(g) as.matrix(as_adj(g, attr = "w", sparse = FALSE)))
+# Asegurar orden
+orden_nodos <- order(as.integer(V(g_list[[1]])$name))
+adj_list <- lapply(adj_list, function(m) m[orden_nodos, orden_nodos])
+adj_agregada <- Reduce("+", adj_list)
+g_agregado <- graph_from_adjacency_matrix(adj_agregada, mode = "undirected", weighted = TRUE)
+
+# --- MUXVIZ & SUPRA-MATRIZ ---
+map_modos <- data.frame(modo = modos, layer_id = 1:length(modos))
+mis_nodos <- sort(unique(zonas_attrs$cluster_id))
+map_nodos <- data.frame(cluster_id = mis_nodos, node_id = 1:length(mis_nodos))
+
+edges_muxviz_intra <- edges_intra %>%
+  left_join(map_modos, by = "modo") %>% rename(layer_from = layer_id) %>% mutate(layer_to = layer_from) %>%
+  left_join(map_nodos, by = c("from" = "cluster_id")) %>% rename(node_from = node_id) %>%
+  left_join(map_nodos, by = c("to" = "cluster_id")) %>% rename(node_to = node_id) %>%
+  select(node_from, layer_from, node_to, layer_to, w)
+
+nodos_capas_activas <- zonas_attrs %>%
+  select(cluster_id, all_of(modos)) %>%
+  pivot_longer(cols = all_of(modos), names_to = "modo", values_to = "active") %>%
+  filter(active == 1) %>%
+  left_join(map_modos, by = "modo") %>% left_join(map_nodos, by = "cluster_id") %>%
+  select(node_id, layer_id)
+
+edges_muxviz_inter <- nodos_capas_activas %>% rename(layer_from = layer_id) %>%
+  inner_join(nodos_capas_activas %>% rename(layer_to = layer_id), by = "node_id", relationship = "many-to-many") %>%
+  filter(layer_from < layer_to) %>% mutate(node_from = node_id, node_to = node_id, w = 1) %>%
+  select(node_from, layer_from, node_to, layer_to, w)
+
+edges_full <- as.data.frame(rbind(edges_muxviz_intra, edges_muxviz_inter))
+
+# Construcción Supra-Matriz
+Layers <- length(modos); Nodes <- nrow(map_nodos); TotalNodes <- Layers * Nodes
+get_supra_idx <- function(n, l, NumNodes) (l - 1) * NumNodes + n
+edges_supra <- edges_full %>% mutate(idx_from = get_supra_idx(node_from, layer_from, Nodes), idx_to = get_supra_idx(node_to, layer_to, Nodes))
+
+SupraAdj <- sparseMatrix(i = edges_supra$idx_from, j = edges_supra$idx_to, x = edges_supra$w, dims = c(TotalNodes, TotalNodes), symmetric = FALSE)
+SupraAdj <- SupraAdj + t(SupraAdj)
+g_supra_final <- graph_from_adjacency_matrix(SupraAdj, mode = "undirected", weighted = TRUE)
+pr_result <- page_rank(g_supra_final, damping = 0.85)
+
+pr_vals <- pr_result$vector
+node_indices <- rep(1:Nodes, Layers)
+multi_pagerank <- tapply(pr_vals, node_indices, sum)
+
+metricas_muxviz <- data.frame(node_id = 1:Nodes, multi_pagerank_muxviz = as.numeric(multi_pagerank)) %>% left_join(map_nodos, by = "node_id")
+
+# --- MÉTRICAS CENTRALIDAD Y VERSATILIDAD ---
+centralidad_lista <- list()
+for (modo in names(g_list)) {
+  g <- g_list[[modo]]
+  centralidad_lista[[modo]] <- data.frame(cluster_id = as.integer(V(g)$name), modo = modo, degree = degree(g), stringsAsFactors = FALSE)
+}
+centralidad_por_capa <- do.call(rbind, centralidad_lista)
+
+mat_grado_df <- as.data.frame.matrix(xtabs(degree ~ cluster_id + modo, data = centralidad_por_capa))
+for (m in modos) if (!m %in% names(mat_grado_df)) mat_grado_df[[m]] <- 0
+grado_mat <- as.matrix(mat_grado_df[, modos])
+
+calc_versatilidad <- function(vec) {
+  if (sum(vec) == 0) return(NA_real_)
+  p <- vec / sum(vec); p <- p[p > 0]
+  H <- -sum(p * log(p))
+  H / log(length(vec))
+}
+versatilidad_entropia <- apply(grado_mat, 1, calc_versatilidad)
+
+versatilidad_df <- data.frame(cluster_id = as.integer(rownames(grado_mat)), versatilidad_grado = as.numeric(versatilidad_entropia)) %>%
+  left_join(metricas_muxviz, by = "cluster_id") %>%
+  left_join(zonas_attrs, by = "cluster_id") %>%
+  left_join(viajes_distrito, by = c("distrito_asignado" = "distrito"))
+
+# --- ROBUSTEZ ---
+simular_ataque <- function(g, estrategia = c("dirigido", "aleatorio"), fracciones = seq(0, 0.5, by = 0.05)) {
+  estrategia <- match.arg(estrategia)
+  n <- vcount(g)
+  resultados <- tibble()
+  if (estrategia == "dirigido") orden <- names(sort(degree(g), decreasing = TRUE)) else orden <- sample(V(g)$name)
+  initial_size <- max(components(g)$csize)
+  
+  for (f in fracciones) {
+    k <- ceiling(f * n)
+    g_tmp <- delete_vertices(g, orden[seq_len(k)])
+    gcc <- if (vcount(g_tmp) == 0) 0 else max(components(g_tmp)$csize)
+    resultados <- bind_rows(resultados, tibble(frac_eliminada = f, tamano_gcc_rel = gcc / initial_size, estrategia = estrategia))
+  }
+  resultados
+}
+res_dirigido  <- simular_ataque(g_agregado, "dirigido")
+res_aleatorio <- simular_ataque(g_agregado, "aleatorio")
+res_vuln <- bind_rows(res_dirigido, res_aleatorio)
+```
+
+### Métricas Generales {data-commentary-width=400}
+
+```{r}
+metricas_generales <- data.frame(
+  Metrica = c("Total de Zonas", "Conexiones (Agregado)", "Densidad", "Tamaño GCC", "Diámetro", "Clustering"),
+  Valor = c(vcount(g_agregado), ecount(g_agregado), round(edge_density(g_agregado), 4),
+            max(components(g_agregado)$csize), diameter(g_agregado, directed = FALSE), round(transitivity(g_agregado, type = "global"), 4))
+)
+
+datatable(metricas_generales, options = list(dom = 't', pageLength = 10, columnDefs = list(list(className = 'dt-center', targets = "_all"))),
+          rownames = FALSE, class = 'cell-border stripe') %>%
+  formatStyle('Metrica', backgroundColor = '#ecf0f1', fontWeight = 'bold') %>%
+  formatStyle('Valor', backgroundColor = '#e8f5e9')
+```
+
+***
+
+**Diagnóstico General del Sistema**
+
+Este panel resume los indicadores vitales de la red multicapa. La alta integridad de la **Componente Gigante (GCC)** indica que casi la totalidad del sistema es navegable, mientras que el **Coeficiente de Clustering (0.33)** sugiere una estructura de "Mundo Pequeño", ideal para la movilidad eficiente. La baja densidad es esperable en redes espaciales físicas.
+
+### Distribución Nodos por Capa {data-commentary-width=400}
+
+```{r}
+nodos_por_capa <- data.frame(
+  Capa = c("Bus", "Metro", "BiciMAD", "Parking"),
+  Nodos = c(sum(degree(g_bus) > 0), sum(degree(g_metro) > 0), sum(degree(g_bicimad) > 0), sum(degree(g_parking) > 0)),
+  Color = c("#e74c3c", "#2c7bb6", "#27ae60", "#f39c12")
+)
+
+plot_ly(nodos_por_capa, labels = ~Capa, values = ~Nodos, type = 'pie', marker = list(colors = ~Color),
+        textposition = 'inside', textinfo = 'label+percent+value') %>%
+  layout(title = "Nodos Activos por Modo", showlegend = TRUE, legend = list(orientation = 'h'))
+```
+
+***
+
+**Análisis de la Distribución**
+
+La preponderancia de la capa de **Autobús**, que representa la mayor fracción de nodos activos, confirma su rol de "malla capilar" cubriendo la totalidad del territorio. Metro y BiciMAD muestran una participación más selectiva (corredores de alta capacidad y almendra central, respectivamente), reflejando una clara jerarquía funcional entre cobertura extensiva e intensiva.
+
+### Top 10 Versatilidad {data-commentary-width=400}
+
+```{r}
+top_versatilidad <- versatilidad_df %>% arrange(desc(versatilidad_grado)) %>% head(10) %>%
+  select(cluster_id, versatilidad_grado, viajes_medios_por_persona) %>%
+  mutate(Ranking = row_number(), versatilidad_grado = round(versatilidad_grado, 3), viajes_medios_por_persona = round(viajes_medios_por_persona, 3)) %>%
+  select(Ranking, cluster_id, versatilidad_grado, viajes_medios_por_persona)
+colnames(top_versatilidad) <- c("Rank", "Zona ID", "Versatilidad", "Viajes/Persona")
+
+datatable(top_versatilidad, options = list(dom = 't', pageLength = 10), rownames = FALSE, class = 'cell-border stripe') %>%
+  formatStyle('Versatilidad', background = styleColorBar(top_versatilidad$Versatilidad, '#3498db'))
+```
+
+***
+
+**Interpretación del Ranking**
+
+Las zonas líderes en este ranking presentan una versatilidad cercana a 1 (máxima entropía), indicando que no dependen de un solo modo de transporte. Estos nodos funcionan como **"rótulas" sistémicas**, puntos críticos de intercambio donde se "cosen" las diferentes capas de la ciudad, facilitando la intermodalidad fluida.
+
+### Centralidad Comparada {data-commentary-width=400}
+
+```{r}
+centralidad_comparada <- data.frame(
+  Capa = rep(c("Bus", "Metro", "BiciMAD", "Parking"), each = 3),
+  Metrica = rep(c("Grado Medio", "Grado Máximo", "Densidad"), 4),
+  Valor = c(mean(degree(g_bus)), max(degree(g_bus)), edge_density(g_bus),
+            mean(degree(g_metro)), max(degree(g_metro)), edge_density(g_metro),
+            mean(degree(g_bicimad)), max(degree(g_bicimad)), edge_density(g_bicimad),
+            mean(degree(g_parking)), max(degree(g_parking)), edge_density(g_parking))
+)
+
+plot_ly(centralidad_comparada, x = ~Metrica, y = ~Valor, color = ~Capa, colors = c("#e74c3c", "#2c7bb6", "#27ae60", "#f39c12"), type = 'bar') %>%
+  layout(title = "Comparación de Centralidad", barmode = 'group', legend = list(orientation = 'h'))
+```
+
+***
+
+**Comparativa Topológica**
+
+Se observa una drástica variación en la topología: el Autobús posee máxima densidad local por su proximidad, mientras que el Metro optimiza eficiencia con conexiones estratégicas. Esto valida numéricamente que cada modo tiene una estructura de red adaptada a su función específica (velocidad vs proximidad).
+
+### Robustez del Sistema {data-commentary-width=400}
+
+```{r}
+plot_ly() %>%
+  add_trace(data = res_vuln %>% filter(estrategia == "dirigido"), x = ~frac_eliminada*100, y = ~tamano_gcc_rel*100, type = 'scatter', mode = 'lines+markers', name = 'Ataque Dirigido', line = list(color = '#e74c3c')) %>%
+  add_trace(data = res_vuln %>% filter(estrategia == "aleatorio"), x = ~frac_eliminada*100, y = ~tamano_gcc_rel*100, type = 'scatter', mode = 'lines+markers', name = 'Fallo Aleatorio', line = list(color = '#27ae60')) %>%
+  layout(title = "Robustez: Dirigido vs Aleatorio", xaxis = list(title = "% Nodos Eliminados"), yaxis = list(title = "% Tamaño GCC"))
+```
+
+***
+
+**Diagnóstico de Vulnerabilidad**
+
+Este gráfico evidencia la naturaleza "Scale-Free" del sistema. La extrema divergencia entre la resistencia a fallos aleatorios (línea verde estable) y la fragilidad ante ataques dirigidos (colapso rápido en rojo) señala la criticidad de proteger los grandes hubs. El sistema es robusto ante accidentes, pero frágil ante fallos en sus nodos vertebradores.
+
+### Distribución de Grados {data-commentary-width=400}
+
+```{r}
+grados_data <- data.frame(
+  Capa = c(rep("Bus", sum(degree(g_bus)>0)), rep("Metro", sum(degree(g_metro)>0)), rep("BiciMAD", sum(degree(g_bicimad)>0)), rep("Parking", sum(degree(g_parking)>0))),
+  Grado = c(degree(g_bus)[degree(g_bus)>0], degree(g_metro)[degree(g_metro)>0], degree(g_bicimad)[degree(g_bicimad)>0], degree(g_parking)[degree(g_parking)>0])
+)
+
+plot_ly(grados_data, x = ~Capa, y = ~Grado, color = ~Capa, colors = c("#e74c3c", "#2c7bb6", "#27ae60", "#f39c12"), type = 'violin', box = list(visible = TRUE)) %>%
+  layout(title = "Distribución de Grados (Violin)", showlegend = FALSE)
+```
+
+***
+
+**Heterogeneidad de Conexiones**
+
+La dispersión en la capa de Autobús refleja la variabilidad territorial (zonas densas vs dispersas), mientras Metro y Parking son más uniformes. BiciMAD muestra una bimodalidad interesante que distingue entre estaciones periféricas y núcleos centrales hiperconectados.
+
+### Versatilidad vs Demanda {data-commentary-width=400}
+
+```{r}
+datos_plot <- versatilidad_df %>% filter(!is.na(versatilidad_grado) & !is.na(viajes_medios_por_persona))
+plot_ly(datos_plot, x = ~viajes_medios_por_persona, y = ~versatilidad_grado, type = 'scatter', mode = 'markers',
+        marker = list(size = ~scales::rescale(multi_pagerank_muxviz, to=c(5,15)), color = ~multi_pagerank_muxviz, colorscale = 'Magma', showscale = TRUE),
+        text = ~paste("Zona:", cluster_id, "<br>Versatilidad:", round(versatilidad_grado,2))) %>%
+  layout(title = "Versatilidad vs Viajes (Color=PageRank)", xaxis = list(title = "Viajes/Persona"), yaxis = list(title = "Versatilidad"))
+```
+
+***
+
+**Desacoplamiento Estructural**
+
+La falta de correlación lineal confirma que **infraestructura** y **demanda** no van siempre unidas. Zonas de alta versatilidad (infraestructura) con demanda media actúan como conectores de red estratégicos, diseñados para la accesibilidad global más que para absorber picos locales de viajeros.
