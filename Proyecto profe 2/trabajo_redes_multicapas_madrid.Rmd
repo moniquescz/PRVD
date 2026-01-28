@@ -34,6 +34,8 @@ knitr::opts_chunk$set(
 
 # Introducción
 
+El sistema de transporte público de Madrid constituye una infraestructura crítica para la movilidad urbana, articulando el flujo diario de millones de pasajeros a través de diversos modos que operan de manera simultánea e interdependiente. Tradicionalmente, estos modos se han gestionado y estudiado como redes aisladas; sin embargo, esta aproximación ignora la complejidad de las interconexiones reales entre el autobús, el metro, la bicicleta pública y los aparcamientos. El presente estudio supera esta limitación adoptando un enfoque de **Redes Multicapa**, modelando matemáticamente la ciudad como un "sistema de sistemas" donde la eficiencia y la robustez global emergen de la interacción entre las distintas capas de transporte.
+
 En este trabajo se analiza la **estructura multicapa de la red de
 transporte de la ciudad de Madrid** a partir de dos conjuntos de datos
 reales proporcionados:
@@ -2125,11 +2127,11 @@ en los datos reales de Madrid, tal y como se pedía en el enunciado.
 
 Para la realización de este estudio, la librería `muxViz` en R ha sido la herramienta fundamental para el análisis matemático. El proceso se ha estructurado en fases clave:
 
-1.  **Modelado de la Red**: Hemos transformado los datos espaciales a "Extended Edge Lists" y utilizado la función `BuildSupraAdjacencyMatrixFromExtendedEdgelist()` de `muxViz`. Esto generó el objeto tensorial (Supra-Matriz) que unifica matemáticamente las capas de Metro, Bus, BiciMAD y Parking.
+1.  **Modelado de la Red**: Hemos seguido la lógica matemática de `muxViz` para construir la Matriz Supra-Adyacente. Dado el tamaño de la red, hemos implementado esta construcción utilizando matrices dispersas optimizadas (`Matrix` package) en lugar de la función original `BuildSupraAdjacencyMatrixFromExtendedEdgelist()`, garantizando así la estabilidad y evitando desbordamientos de memoria, manteniendo intacta la definición del tensor supra-adyacente.
 
 2.  **Análisis de Métricas**: Para cuantificar la relevancia real de las paradas, hemos calculado:
     *   **Grado Multicapa**: Mediante `GetMultiDegree()`, obteniendo la conectividad total en el supra-grafo.
-    *   **PageRank Multicapa**: Mediante `GetMultiPageRankCentrality()`. Esta métrica es superior a la centralidad clásica, ya que identifica los nodos que son importantes por su capacidad de conectar flujos complejos a través de diferentes modos, no solo por tener muchos vecinos directos.
+    *   **PageRank Multicapa**: Para este cálculo, hemos aplicado el algoritmo de PageRank directamente sobre el supra-grafo construido. Esta implementación es matemáticamente equivalente a `GetMultiPageRankCentrality()` pero se ejecuta mediante el motor optimizado en C++ de `igraph`, lo que asegura precisión numérica y velocidad de ejecución. Esta métrica es superior a la centralidad clásica, ya que identifica los nodos que son importantes por su capacidad de conectar flujos complejos a través de diferentes modos.
 
 3.  **Visualización**: Aunque `muxViz` proporciona funciones nativas para la visualización de redes multicapa, en este trabajo no se ha utilizado directamente la función original `plot_multiplex3D()`. Esto se debe a la existencia de errores de ejecución y problemas de compatibilidad con versiones recientes de R, documentados en los *issues* abiertos del repositorio oficial de `muxViz` en GitHub, que impedían su correcto funcionamiento.
 
