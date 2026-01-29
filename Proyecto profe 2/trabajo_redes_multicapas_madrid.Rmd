@@ -461,7 +461,7 @@ específica un nodo no tiene conexiones (está aislado). El código
 identifica los nodos que faltan en una capa (setdiff) y los añade
 manualmente como vértices aislados. Sin este paso, las matrices de
 adyacencia tendrían dimensiones distintas y sería matemáticamente
-imposible construir el objeto "multiplex" (la "lasaña" no encajaría).
+imposible construir el objeto "multiplex".
 
 ```{r graphs-por-modo}
 nodos_ids <- zonas_attrs$cluster_id
