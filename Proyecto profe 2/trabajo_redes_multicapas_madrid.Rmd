@@ -1830,70 +1830,104 @@ datatable(
 
 ## Análisis de Centralidad por Capa
 
-```{r dashboard-centralidad-capas, echo=FALSE, fig.height=6}
-# Preparamos datos de centralidad para cada capa
-centralidad_comparada <- data.frame(
-  Capa = rep(c("Bus", "Metro", "BiciMAD", "Parking"), each = 3),
-  Metrica = rep(c("Grado Medio", "Grado Máximo", "Densidad"), 4),
+```{r dashboard-centralidad-grados, echo=FALSE, fig.height=6}
+library(dplyr)
+library(plotly)
+
+# Datos de grado medio y máximo
+centralidad_grados <- data.frame(
+  Capa = rep(c("Bus", "Metro", "BiciMAD", "Parking"), each = 2),
+  Metrica = rep(c("Grado Medio", "Grado Máximo"), 4),
   Valor = c(
     # Bus
     mean(degree(g_bus)),
     max(degree(g_bus)),
-    edge_density(g_bus),
     # Metro
     mean(degree(g_metro)),
     max(degree(g_metro)),
-    edge_density(g_metro),
     # BiciMAD
     mean(degree(g_bicimad)),
     max(degree(g_bicimad)),
-    edge_density(g_bicimad),
     # Parking
     mean(degree(g_parking)),
-    max(degree(g_parking)),
+    max(degree(g_parking))
+  )
+)
+
+fig_grados <- plot_ly(
+  centralidad_grados,
+  x = ~Metrica,
+  y = ~Valor,
+  color = ~Capa,
+  colors = c("#2c7bb6", "#27ae60", "#e74c3c", "#f39c12"),
+  type = "bar",
+  text = ~round(Valor, 2),
+  textposition = "outside",
+  hovertemplate = paste(
+    "<b>%{x}</b><br>",
+    "Capa: %{data.name}<br>",
+    "Valor: %{y:.2f}<br>",
+    "<extra></extra>"
+  )
+) %>%
+  layout(
+    title = "Comparación de Grados por Capa",
+    xaxis = list(title = "Métrica"),
+    yaxis = list(title = "Valor"),
+    barmode = "group",
+    legend = list(orientation = "h", y = -0.2)
+  )
+
+fig_grados
+```
+
+La comparación de grados evidencia una jerarquía funcional clara entre capas. El Autobús alcanza el mayor grado medio, indicando una red densa en conexiones locales. BiciMAD y Metro presentan grados máximos similares, pero con promedios más bajos, reflejando un diseño más selectivo y estructurado. Parking muestra la menor conectividad media, acorde con su rol puntual dentro del sistema. Estas diferencias confirman que cada modo optimiza su topología según su función urbana específica.
+
+
+## Densidad por Capa
+
+
+```{r dashboard-centralidad-densidad, echo=FALSE, fig.height=5}
+# Datos de densidad
+densidad_capas <- data.frame(
+  Capa = c("Bus", "Metro", "BiciMAD", "Parking"),
+  Densidad = c(
+    edge_density(g_bus),
+    edge_density(g_metro),
+    edge_density(g_bicimad),
     edge_density(g_parking)
   )
 )
 
-# Normalizamos para mejor visualización
-centralidad_comparada <- centralidad_comparada %>%
-  group_by(Metrica) %>%
-  mutate(Valor_Norm = scales::rescale(Valor, to = c(0, 1))) %>%
-  ungroup()
-
-# Gráfico de barras agrupadas interactivo
-fig_centralidad <- plot_ly(
-  centralidad_comparada,
-  x = ~Metrica,
-  y = ~Valor,
+fig_densidad <- plot_ly(
+  densidad_capas,
+  x = ~Capa,
+  y = ~Densidad,
   color = ~Capa,
-  colors = c("#e74c3c", "#2c7bb6", "#27ae60", "#f39c12"),
-  type = 'bar',
-  text = ~round(Valor, 2),
-  textposition = 'outside',
+  colors = c("#2c7bb6", "#27ae60", "#e74c3c", "#f39c12"),
+  type = "bar",
+  text = ~round(Densidad, 4),
+  textposition = "outside",
   hovertemplate = paste(
-    '<b>%{x}</b><br>',
-    'Capa: %{data.name}<br>',
-    'Valor: %{y:.4f}<br>',
-    '<extra></extra>'
+    "<b>Capa:</b> %{x}<br>",
+    "Densidad: %{y:.4f}<br>",
+    "<extra></extra>"
   )
 ) %>%
   layout(
-    title = list(
-      text = "Comparación de Métricas de Centralidad por Capa",
-      font = list(size = 18, color = '#2c3e50')
-    ),
-    xaxis = list(title = "Métrica"),
-    yaxis = list(title = "Valor"),
-    barmode = 'group',
-    legend = list(orientation = 'h', y = -0.15)
+    title = "Densidad de la Red por Capa",
+    xaxis = list(title = "Capa"),
+    yaxis = list(title = "Densidad"),
+    showlegend = FALSE
   )
 
-fig_centralidad
+fig_densidad
+
 ```
 
-**Comparativa de Centralidad:** Como se observa, la densidad y el grado medio varían drásticamente entre capas. La red de Autobuses presenta la mayor densidad de conexiones locales debido a la proximidad física de sus paradas, mientras que el Metro prioriza la eficiencia con menos conexiones pero más estratégicas. Esto valida numéricamente que cada capa tiene una topología optimizada para su función específica (cobertura local vs. velocidad a media distancia).
 
+
+La capa de Autobús presenta la mayor densidad, reflejando su función de cobertura capilar y alta proximidad territorial. BiciMAD muestra una densidad intermedia, coherente con una red urbana distribuida pero no completamente conectada. Metro y Parking exhiben densidades bajas, propias de infraestructuras altamente especializadas, diseñadas para eficiencia y función específica más que para conectividad local. En conjunto, las bajas densidades son consistentes con la naturaleza espacial de las redes de transporte reales.
 
 ## Robustez: Evolución de la Componente Gigante
 
