@@ -229,11 +229,10 @@ distritos analizados:
     2.135 viajes por persona. Esto indica que, independientemente del
     distrito, la movilidad media individual es muy constante.
 
-2.  **Tendencia Central (La regla del "Ida y Vuelta")**: Tanto la media
-    (2.041) como la mediana (2.038) se sitúan prácticamente en 2. Esto
-    tiene un sentido lógico muy fuerte en transporte urbano: representa
-    el patrón estándar de un viaje de ida y otro de vuelta (péndulo
-    diario).
+2.  **Tendencia Central de Ida y Vuelta**: Tanto la media (2.041) como
+    la mediana (2.038) se sitúan prácticamente en 2. Esto tiene un
+    sentido lógico muy fuerte en transporte urbano: representa el patrón
+    estándar de un viaje de ida y otro de vuelta (péndulo diario).
 
 3.  **Implicación para el Modelo**: Dado que la desviación entre el
     primer cuartil (2.004) y el tercer cuartil (2.063) es mínima, esta
