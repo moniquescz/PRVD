@@ -1285,7 +1285,6 @@ for (m in modos) {
        main = paste("MODO:", toupper(m)),
        xlab = "Grado Intra-capa", ylab = "Frecuencia")
 }
-par(mfrow = c(1, 1))
 ```
 
 ## Versatilidad y Ranking Multicapa (con muxViz)
