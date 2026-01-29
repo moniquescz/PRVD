@@ -440,8 +440,9 @@ representa una arista (conexión) entre dos paradas. Sus columnas son:
 -   modo: Identificador de la capa de transporte (ej. "metro", "bus",
     "bicimad").
 
--   from: ID numérico del nodo de origen (cluster_id).to: ID numérico
-    del nodo de destino (uno de sus vecinos más cercanos).
+-   from: ID numérico del nodo de origen (cluster_id).
+
+-   to: ID numérico del nodo de destino (uno de sus vecinos más cercanos).
 
 -   dist: La distancia euclídea en metros entre ambos nodos.
 
@@ -534,7 +535,7 @@ fundamentales para el modelo multicapa:
     directa entre ellos bajo el criterio de vecindad espacial
     establecido ($k=3$).
 
-3.  Preservación de Atributos La salida confirma (attr: name,
+3.  Preservación de Atributos: La salida confirma (attr: name,
     stop_lat...) que se han preservado los metadatos espaciales y
     demográficos en todos los nodos. Esto permitirá que, en las fases
     posteriores de visualización y análisis de vulnerabilidad, se puedan
