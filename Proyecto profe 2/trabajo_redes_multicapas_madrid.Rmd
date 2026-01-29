@@ -247,7 +247,7 @@ La idea es pasar de paradas individuales a **zonas de intercambio**
 (clusters de paradas cercanas), y luego construir una capa por modo de
 transporte.
 
-## 1. Definición de zonas de intercambio (clustering espacial)
+## Definición de zonas de intercambio (clustering espacial)
 
 ```{r zonas-intercambio, message=FALSE}
 # Creamos objeto sf con coordenadas
@@ -316,7 +316,7 @@ plot(zonas_sf["distrito_asignado"],
      border = NA) # Quitamos bordes si los hubiera para que el color sea más puro
 ```
 
-## 2. Nodos por modo de transporte
+## Nodos por modo de transporte
 
 ```{r nodos-por-modo}
 modos <- sort(unique(transporte_sf$transport_mode))
@@ -350,7 +350,7 @@ captura la interconectividad del tejido urbano, facilitando la
 transición entre diferentes modos de movilidad en puntos estratégicos de
 la red.
 
-## 3. Construcción de redes intra-capa
+## Construcción de redes intra-capa
 
 Este bloque de código construye la estructura topológica intra-capa
 (conexiones internas) para cada medio de transporte mediante un criterio
@@ -391,7 +391,7 @@ build_edges_simple <- function(modo_nombre, k = 3) {
   for (i in 1:nrow(coords)) {
     punto_origen <- coords[i, ]
     
-    # Calculamos distancia euclidiana: sqrt((x1-x2)^2 + (y1-y2)^2)
+    # Calculamos distancia euclidea: sqrt((x1-x2)^2 + (y1-y2)^2)
     distancias <- sqrt((punto_origen$x - coords$x)^2 + (punto_origen$y - coords$y)^2)
     
     # Creamos un dataframe temporal con las distancias de 'i' al resto
@@ -449,7 +449,7 @@ representa una arista (conexión) entre dos paradas. Sus columnas son:
     $1/(1 + \text{distancia})$. Varía entre 0 y 1, siendo mayor cuanto
     más cerca están las paradas.
 
-## 4. Grafos por capa (lista `g_list`)
+## Grafos por capa (lista `g_list`)
 
 Este bloque tiene una misión crítica en el análisis multicapa:
 garantizar la alineación de nodos (Node Alignment). La función
@@ -743,7 +743,7 @@ if (requireNamespace("rgl", quietly = TRUE)) {
     layer.colors = colores,
     layer.shift.x = 0,   # Sin shift horizontal extra
     layer.shift.y = 0,
-    layer.space = 5,    # Espacio vertical generoso relativo a la escala normalizada
+    layer.space = 4,
   )
   
   # Ajustar vista
@@ -1132,7 +1132,7 @@ clave.
 
 # Centralidad y versatilidad de las zonas
 
-## 1. Medidas de centralidad por capa
+## Medidas de centralidad por capa
 
 Calculamos grado y fuerza (suma de pesos) para cada zona en cada modo.
 
@@ -1287,7 +1287,7 @@ for (m in modos) {
 par(mfrow = c(1, 1))
 ```
 
-## 2. Versatilidad y Ranking Multicapa (con muxViz)
+## Versatilidad y Ranking Multicapa (con muxViz)
 
 Utilizando la librería `muxViz`, calculamos métricas globales que integran la estructura topológica de todas las capas simultáneamente.
 
@@ -1366,7 +1366,7 @@ hace que la zona sea menos flexible ante perturbaciones que afecten a su
 modo dominante, ya que existen menos alternativas multimodales
 inmediatas.
 
-## 3. Relación entre versatilidad e intensidad de viajes
+## Relación entre versatilidad e intensidad de viajes
 
 ```{r versatilidad-vs-viajes, fig.height=8, fig.width=10}
 # Quitamos NAs de las columnas que vamos a usar
@@ -1446,7 +1446,7 @@ un análisis sencillo pero informativo de **robustez estructural**:
     observamos cómo disminuye el tamaño de la componente gigante
     agregada.
 
-## 1. Red agregada
+## Red agregada
 
 ```{r red-agregada}
 # Matrices de adyacencia por capa
@@ -1467,7 +1467,7 @@ tamano_gcc_inicial <- max(comp$csize)
 tamano_gcc_inicial
 ```
 
-## 2. Robustez frente a fallos en una capa
+## Robustez frente a fallos en una capa
 
 Analizamos qué ocurre si vamos eliminando nodos con mayor grado en la
 capa `metro` y miramos el tamaño relativo de la componente gigante en la
