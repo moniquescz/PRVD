@@ -1306,8 +1306,8 @@ La visualización comparada de la distribución del **Grado** (número de conexi
 
 Utilizando la librería `muxViz`, calculamos métricas globales que integran la estructura topológica de todas las capas simultáneamente.
 
-1.  **Versatilidad de Grado (Entropía)**: Mide el equilibrio de conexiones entre capas.
-2.  **Multi-Layer PageRank**: Mide la importancia global del nodo considerando flujos que viajan a través de múltiples modos.
+1.  **Versatilidad de Grado (Entropía de Shannon)**: Mide el equilibrio de conexiones entre capas. Serán valores entre 0 y 1 dependiendo de lo uniforme que sea la distribución del grado del nodo en las diferentes capas; un valor cercano a 1 indica que el nodo es multimodal (está conectado de forma equilibrada en varios transportes), mientras que un valor cercano a 0 indica que está especializado en un solo modo. Esto es gracias a la entropía de Shannon, que mide la incertidumbre o el desorden de un sistema.
+2.  **Multi-Layer PageRank**: Es una métrica de centralidad que mide la influencia o relevancia global de una zona dentro de la red integrada. A diferencia del PageRank convencional, este algoritmo calcula la probabilidad de que un usuario alcance un nodo específico navegando no solo a través de una línea de transporte (movimiento intra-capa), sino también mediante los transbordos entre diferentes modos (movimiento inter-capa). Un nodo con un PageRank alto es un punto de destino o tránsito preferente en el ecosistema total de Madrid.
 
 ```{r versatilidad-muxviz}
 # A. Versatilidad Manual (Entropía)
@@ -1345,7 +1345,7 @@ orden_desc <- order(versatilidad_df$versatilidad_grado, decreasing = TRUE)
 top_versatiles_full <- head(versatilidad_df[orden_desc, ], n = 15)
 
 # Verificamos qué columnas están disponibles para evitar el error "undefined columns"
-cols_deseadas <- c("cluster_id", "versatilidad_grado", "modos_disponibles", "distrito_asignado")
+cols_deseadas <- c("cluster_id", "versatilidad_grado","multi_pagerank_muxviz", "modos_disponibles", "distrito_asignado")
 cols_presentes <- cols_deseadas[cols_deseadas %in% colnames(top_versatiles_full)]
 
 top_versatiles <- top_versatiles_full[, cols_presentes]
@@ -1400,12 +1400,8 @@ modelo <- loess(versatilidad_grado ~ viajes_medios_por_persona, data = datos_plo
 lines(datos_plot$viajes_medios_por_persona, predict(modelo), col = "blue", lwd = 2)
 ```
 
-La Figura anterior muestra la relación entre la
-\textbf{versatilidad de grado de las zonas} y el
-\textbf{número medio de viajes por persona} a nivel de distrito.
-Visualmente, la nube de puntos no presenta una tendencia clara, lo que
-sugiere una relación débil entre ambas variables. Este resultado se
-confirma mediante el análisis de correlación de Pearson.
+La Figura anterior muestra la relación entre la versatilidad de grado de las zonas y el número medio de viajes por persona a nivel de distrito.
+Visualmente, la nube de puntos no presenta una tendencia clara, lo que sugiere una relación débil entre ambas variables. Este resultado se confirma mediante el análisis de correlación de Pearson.
 
 ```{r correlacion-versatilidad-viajes}
 datos_cor <- versatilidad_df %>% 
@@ -1618,8 +1614,8 @@ ggplot(res_vuln,
 
 ```
 
-El análisis conjunto de la versatilidad nodal y la robustez estructural
-de la red agregada de Madrid arroja tres conclusiones fundamentales
+Con el análisis conjunto de la versatilidad nodal y la robustez estructural
+de la red agregada de Madrid podemos extraer tres conclusiones fundamentales
 sobre la arquitectura del sistema de transporte:
 
 1.  Independencia entre Infraestructura y Demanda Individual. Tal como
@@ -1627,18 +1623,17 @@ sobre la arquitectura del sistema de transporte:
     correlación clara entre la intensidad de uso (viajes medios por
     persona en el distrito) y la complejidad multimodal de las paradas.
 
-    -   Estratificación de la oferta: La disposición de los puntos en
-        bandas horizontales discretas revela que la red no es continua,
-        sino jerárquica: la gran mayoría de nodos son unimodales (base
-        del gráfico), mientras que la multimodalidad se da "a saltos"
-        (agregando capas de Metro o BiciMAD).
+    -   La disposición de los puntos en bandas horizontales discretas 
+        revela que la red no es continua, sino jerárquica: la gran mayoría de 
+        nodos son unimodales (base del gráfico), mientras que la multimodalidad 
+        se da "a saltos" (agregando capas de Metro o BiciMAD).
 
     -   Homogeneidad de la demanda: El rango estrecho del eje X (1.95 -
         2.15 viajes) confirma que la movilidad individual es uniforme en
         toda la ciudad. Por tanto, la ubicación de los grandes
         intercambiadores (nodos con alta versatilidad) responde a
         criterios estratégicos de planificación de red y transbordo, y
-        no a una mayor intensidad de viajes per cápita en esos distritos
+        no a una mayor intensidad de viajes en esos distritos
         específicos.
 
 2.  La red es "Robusta pero Frágil". La comparación entre estrategias de
