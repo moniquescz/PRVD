@@ -128,7 +128,7 @@ columnas_interes <- transporte[, c("stop_lat", "stop_lon", "distrito_asignado")]
 summary(columnas_interes)
 ```
 
-Las variables utilizadas en el fichero `transporte_madrid_consolidado`
+Las variables más relevantes del fichero `transporte_madrid_consolidado`
 son las siguientes:
 
 -   `stop_name`: nombre de la parada/estación.
@@ -158,8 +158,8 @@ viajes <- clean_names(viajes)
 summary(viajes$personas)
 ```
 
-Las variables utilizadas en el fichero `viajes_madrid` son las
-siguientes:
+Las variables más relevantes utilizadas del fichero `viajes_madrid` son
+las siguientes:
 
 -   `fecha`: mes de referencia.
 -   `name`: nombre del distrito.
