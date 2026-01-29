@@ -34,10 +34,20 @@ knitr::opts_chunk$set(
 
 # Introducción
 
-El sistema de transporte público de Madrid constituye una infraestructura crítica para la movilidad urbana, articulando el flujo diario de millones de pasajeros a través de diversos modos que operan de manera simultánea e interdependiente. Tradicionalmente, estos modos se han gestionado y estudiado como redes aisladas; sin embargo, esta aproximación ignora la complejidad de las interconexiones reales entre el autobús, el metro, la bicicleta pública y los aparcamientos. El presente estudio supera esta limitación adoptando un enfoque de **Redes Multicapa**, modelando matemáticamente la ciudad como un "sistema de sistemas" donde la eficiencia y la robustez global emergen de la interacción entre las distintas capas de transporte.
+El sistema de transporte público de Madrid constituye una
+infraestructura crítica para la movilidad urbana, articulando el flujo
+diario de millones de pasajeros a través de diversos modos que operan de
+manera simultánea e interdependiente. Tradicionalmente, estos modos se
+han gestionado y estudiado como redes aisladas. Sin embargo, esta
+aproximación ignora la complejidad de las interconexiones reales entre
+el autobús, el metro, la bicicleta pública y los aparcamientos. El
+presente estudio supera esta limitación adoptando un enfoque de **Redes
+Multicapa**, modelando matemáticamente la ciudad como un "sistema de
+sistemas" donde la eficiencia y la robustez global emergen de la
+interacción entre las distintas capas de transporte.
 
-En este trabajo se analiza la **estructura multicapa de la red de
-transporte de la ciudad de Madrid** a partir de dos conjuntos de datos
+En este trabajo se analiza la estructura multicapa de la red de
+transporte de la ciudad de Madrid a partir de dos conjuntos de datos
 reales proporcionados:
 
 -   Un fichero con las **paradas y estaciones** de distintos modos de
@@ -57,7 +67,8 @@ Los objetivos concretos son:
 -   Explorar de forma sencilla la **vulnerabilidad** del sistema ante
     fallos en una de las capas.
 
-Toda la parte empírica se basa **exclusivamente** en los ficheros:
+Toda la experimentación se basa en dos ficheros elaborados en la otra
+parte de la asginatura, a través de fuentes oficiales y opendata.
 
 -   `transporte_madrid_consolidado.csv`
 -   `viajes_madrid.csv`
@@ -85,21 +96,18 @@ library(muxViz)
 
 ## Lectura de los ficheros
 
-Se asume que los ficheros CSV están en el mismo directorio que este
-documento RMarkdown. Si no es así, ajustar las rutas.
-
 ```{r cargar-datos}
 ruta_transporte <- "transporte_madrid_consolidado.csv"
-ruta_viajes     <- "viajes_madrid.csv"
+ruta_viajes <- "viajes_madrid.csv"
 
 transporte_raw <- read.csv(
   ruta_transporte,
-  sep = ";",
+  sep = ";"
 )
 
 viajes_raw <- read.csv(
   ruta_viajes,
-  sep = ";",
+  sep = ";"
 )
 
 glimpse(transporte_raw)
@@ -120,7 +128,8 @@ columnas_interes <- transporte[, c("stop_lat", "stop_lon", "distrito_asignado")]
 summary(columnas_interes)
 ```
 
-Variables clave:
+Las variables utilizadas en el fichero `transporte_madrid_consolidado`
+son las siguientes:
 
 -   `stop_name`: nombre de la parada/estación.
 -   `stop_lat`, `stop_lon`: coordenadas geográficas.
@@ -129,7 +138,8 @@ Variables clave:
 -   `stop_id`: identificador de parada.
 -   `distrito_asignado`: código de distrito (INE).
 
-Esto define los **nodos base** del sistema de transporte.
+Esto define los **nodos base** del sistema de transporte que se
+utilizarán para realizar el estudio de la red multicapa.
 
 ## Descripción básica de `viajes_madrid`
 
@@ -148,21 +158,22 @@ viajes <- clean_names(viajes)
 summary(viajes$personas)
 ```
 
-Variables clave:
+Las variables utilizadas en el fichero `viajes_madrid` son las
+siguientes:
 
 -   `fecha`: mes de referencia.
 -   `name`: nombre del distrito.
 -   `edad`, `sexo`: características sociodemográficas.
 -   `numero_viajes`: categoría de nº de viajes (0, 1, 2, `2+`).
--   `personas`: número de personas en esa celda.
--   `distrito`: código de distrito.
+-   `personas`: número de personas con dicho perfil.
+-   `distrito`: código de distrito (INE).
 -   `poblacion`: población total del distrito.
 
 ### Indicador de intensidad de viajes por distrito
 
 Construimos un indicador sencillo de **viajes medios por persona** en
-cada distrito. Primero pasamos la categoría `numero_viajes` a un valor
-numérico aproximado y luego calculamos una media ponderada por el número
+cada distrito. En primer lugar, pasamos la categoría `numero_viajes` a
+un valor numérico y luego calculamos una media ponderada por el número
 de personas.
 
 ### Indicador de viajes medios diarios por persona y distrito
@@ -170,8 +181,8 @@ de personas.
 La variable personas se encontraba codificada con formato decimal
 europeo, por lo que fue necesario convertirla explícitamente a formato
 numérico. Asimismo, la variable numero_viajes es categórica (0, 1, 2,
-2+), por lo que se transformó en una aproximación numérica asignando el
-valor 3 a la categoría “2+”. El indicador final de viajes medios por
+`2+`), por lo que se transformó en una aproximación numérica asignando
+el valor 3 a la categoría `2+`. El indicador final de viajes medios por
 persona se calculó como una media ponderada por el número de personas en
 cada categoría, obteniéndose valores en torno a 2 viajes diarios por
 persona, coherentes con patrones conocidos de movilidad urbana.
@@ -207,32 +218,34 @@ kable(
 summary(viajes_distrito$viajes_medios_por_persona)
 ```
 
-Interpretación de los Resultados (Estadísticas de Viajes)
+### Interpretación de los Resultados (Estadísticas de Viajes)
 
-El resumen estadístico (summary) de la variable
-viajes_medios_por_persona revela un patrón de comportamiento
-extremadamente homogéneo en todos los distritos analizados:
+El resumen estadístico de la variable `viajes_medios_por_persona` revela
+un patrón de comportamiento extremadamente homogéneo en todos los
+distritos analizados:
 
-1.  Uniformidad del Comportamiento: El rango de valores es muy estrecho,
-    oscilando apenas entre un mínimo de 1.956 y un máximo de 2.135
-    viajes por persona. Esto indica que, independientemente del distrito
-    (sea centro o periferia), la movilidad media individual es muy
-    constante.
+1.  **Uniformidad del Comportamiento**: El rango de valores es muy
+    estrecho, oscilando apenas entre un mínimo de 1.956 y un máximo de
+    2.135 viajes por persona. Esto indica que, independientemente del
+    distrito, la movilidad media individual es muy constante.
 
-2.  Tendencia Central (La regla del "Ida y Vuelta"): Tanto la media
+2.  **Tendencia Central (La regla del "Ida y Vuelta")**: Tanto la media
     (2.041) como la mediana (2.038) se sitúan prácticamente en 2. Esto
     tiene un sentido lógico muy fuerte en transporte urbano: representa
     el patrón estándar de un viaje de ida y otro de vuelta (péndulo
     diario).
 
-3.  Implicación para el Modelo: Dado que la desviación entre el primer
-    cuartil (2.004) y el tercer cuartil (2.063) es mínima, esta variable
-    no actúa como un factor discriminante fuerte por sí sola. Esto
-    significa que las diferencias de flujo total que observaremos en la
-    red no se deben a que la gente de un barrio viaje "más veces" que la
-    de otro, sino probablemente a la densidad de población de cada zona
-    (mismo ratio de viajes por persona, pero mucha más gente en unas
-    zonas que en otras).
+3.  **Implicación para el Modelo**: Dado que la desviación entre el
+    primer cuartil (2.004) y el tercer cuartil (2.063) es mínima, esta
+    variable no actúa como un factor discriminante fuerte por sí sola.
+    Esto significa que las diferencias de flujo total que observaremos
+    en la red no se deben a que la gente de un barrio viaje en mayor
+    medida que las de otro, sino probablemente a la densidad de
+    población de cada zona ya que como se ha comprobado, el ratio de
+    viajes_medios_por_persona muestra que en promedio las personas hacen
+    uso de la misma cantidad de viajes, por lo que el factor que
+    determina el mayor número de viajes es la cantidad de población por
+    cada distrito.
 
 Se observa una notable homogeneidad en la movilidad individual a lo
 largo de Madrid, con una media de 2.04 viajes por persona y una varianza
@@ -244,15 +257,20 @@ individual entre zonas.
 # Construcción de la red multicapa
 
 La idea es pasar de paradas individuales a **zonas de intercambio**
-(clusters de paradas cercanas), y luego construir una capa por modo de
-transporte.
+construyendo clústeres de paradas cercanas entre sí y de esta froma
+construir una capa para cada modo de transporte relacionando los
+clústeres entre sí.
 
 ## Definición de zonas de intercambio (clustering espacial)
 
 ```{r zonas-intercambio, message=FALSE}
 # Creamos objeto sf con coordenadas
-transporte_sf <- st_as_sf(transporte, coords = c("stop_lon", "stop_lat"), crs = 4326, remove = FALSE)
-transporte_sf <- st_transform(transporte_sf, 25830)  # sistema métrico (UTM zona 30)
+transporte_sf <- st_as_sf(transporte,
+                          coords = c("stop_lon", "stop_lat"),
+                          crs = 4326, remove = FALSE)
+
+# sistema métrico (UTM zona 30)
+transporte_sf <- st_transform(transporte_sf, 25830)
 
 coords_m <- st_coordinates(transporte_sf)
 coords_m <- as.matrix(coords_m)
@@ -294,10 +312,12 @@ nrow(zonas)
 head(zonas)
 ```
 
-Cada `cluster_id` representa una **zona de intercambio multimodal**.
-
-Representamos la distribución espacial aproximada (proyección geográfica
-simple):
+De esta forma cada `cluster_id` representa una **zona de intercambio
+multimodal**, que cuenta con diferentes modalidades de transporte.
+Centroide del cluster se situa en el centro de las paradas de diferentes
+medios de tranporte que la conforman. Además, se indica el distrito al
+que pertenece cada cluster de forma que pueden quedar representados en
+un mapa bidimensional utilizando las coordenadas de la siguiente manera:
 
 ```{r mapa-zonas, message=FALSE}
 # Aseguramos que sea factor
@@ -306,14 +326,13 @@ zonas_sf <- st_as_sf(zonas, coords = c("stop_lon", "stop_lat"), crs = 4326)
 zonas_sf$distrito_asignado <- as.factor(zonas_sf$distrito_asignado)
 n_distritos <- length(levels(zonas_sf$distrito_asignado))
 
-# Usamos hcl.colors con la paleta "Dark 3" o "Set 2", que son mucho más elegantes
 plot(zonas_sf["distrito_asignado"], 
      main = "Zonas de intercambio por distrito",
      pal = hcl.colors(n_distritos, palette = "Dark 3"), 
      key.pos = 4,
      pch = 19, 
      cex = 0.6,
-     border = NA) # Quitamos bordes si los hubiera para que el color sea más puro
+     border = NA)
 ```
 
 ## Nodos por modo de transporte
@@ -442,7 +461,8 @@ representa una arista (conexión) entre dos paradas. Sus columnas son:
 
 -   from: ID numérico del nodo de origen (cluster_id).
 
--   to: ID numérico del nodo de destino (uno de sus vecinos más cercanos).
+-   to: ID numérico del nodo de destino (uno de sus vecinos más
+    cercanos).
 
 -   dist: La distancia euclídea en metros entre ambos nodos.
 
@@ -1299,15 +1319,41 @@ for (m in modos) {
 }
 ```
 
-La visualización comparada de la distribución del **Grado** (número de conexiones) y la **Fuerza** (suma de pesos ponderados por distancia) revela la huella topológica de cada modo. Se observa un contraste radical entre la red de **Autobús (rojo)**, que presenta una distribución aproximadamente normal (campana de Gauss) centrada en grados intermedios, lo que confirma su función de cobertura capilar global, frente a las redes de **Metro (azul)** y **BiciMAD (verde)**, dominadas por una gran barra en grado cero (zonas sin servicio) y una cola de grados altos. Esto último caracteriza a redes selectivas o jerárquicas, donde pocas infraestructuras conectan zonas estratégicas pero dejan gran parte del territorio sin cobertura directa en esa capa específica.
-
+La visualización comparada de la distribución del **Grado** (número de
+conexiones) y la **Fuerza** (suma de pesos ponderados por distancia)
+revela la huella topológica de cada modo. Se observa un contraste
+radical entre la red de **Autobús (rojo)**, que presenta una
+distribución aproximadamente normal (campana de Gauss) centrada en
+grados intermedios, lo que confirma su función de cobertura capilar
+global, frente a las redes de **Metro (azul)** y **BiciMAD (verde)**,
+dominadas por una gran barra en grado cero (zonas sin servicio) y una
+cola de grados altos. Esto último caracteriza a redes selectivas o
+jerárquicas, donde pocas infraestructuras conectan zonas estratégicas
+pero dejan gran parte del territorio sin cobertura directa en esa capa
+específica.
 
 ## Versatilidad y Ranking Multicapa (con muxViz)
 
-Utilizando la librería `muxViz`, calculamos métricas globales que integran la estructura topológica de todas las capas simultáneamente.
+Utilizando la librería `muxViz`, calculamos métricas globales que
+integran la estructura topológica de todas las capas simultáneamente.
 
-1.  **Versatilidad de Grado (Entropía de Shannon)**: Mide el equilibrio de conexiones entre capas. Serán valores entre 0 y 1 dependiendo de lo uniforme que sea la distribución del grado del nodo en las diferentes capas; un valor cercano a 1 indica que el nodo es multimodal (está conectado de forma equilibrada en varios transportes), mientras que un valor cercano a 0 indica que está especializado en un solo modo. Esto es gracias a la entropía de Shannon, que mide la incertidumbre o el desorden de un sistema.
-2.  **Multi-Layer PageRank**: Es una métrica de centralidad que mide la influencia o relevancia global de una zona dentro de la red integrada. A diferencia del PageRank convencional, este algoritmo calcula la probabilidad de que un usuario alcance un nodo específico navegando no solo a través de una línea de transporte (movimiento intra-capa), sino también mediante los transbordos entre diferentes modos (movimiento inter-capa). Un nodo con un PageRank alto es un punto de destino o tránsito preferente en el ecosistema total de Madrid.
+1.  **Versatilidad de Grado (Entropía de Shannon)**: Mide el equilibrio
+    de conexiones entre capas. Serán valores entre 0 y 1 dependiendo de
+    lo uniforme que sea la distribución del grado del nodo en las
+    diferentes capas; un valor cercano a 1 indica que el nodo es
+    multimodal (está conectado de forma equilibrada en varios
+    transportes), mientras que un valor cercano a 0 indica que está
+    especializado en un solo modo. Esto es gracias a la entropía de
+    Shannon, que mide la incertidumbre o el desorden de un sistema.
+2.  **Multi-Layer PageRank**: Es una métrica de centralidad que mide la
+    influencia o relevancia global de una zona dentro de la red
+    integrada. A diferencia del PageRank convencional, este algoritmo
+    calcula la probabilidad de que un usuario alcance un nodo específico
+    navegando no solo a través de una línea de transporte (movimiento
+    intra-capa), sino también mediante los transbordos entre diferentes
+    modos (movimiento inter-capa). Un nodo con un PageRank alto es un
+    punto de destino o tránsito preferente en el ecosistema total de
+    Madrid.
 
 ```{r versatilidad-muxviz}
 # A. Versatilidad Manual (Entropía)
@@ -1400,8 +1446,11 @@ modelo <- loess(versatilidad_grado ~ viajes_medios_por_persona, data = datos_plo
 lines(datos_plot$viajes_medios_por_persona, predict(modelo), col = "blue", lwd = 2)
 ```
 
-La Figura anterior muestra la relación entre la versatilidad de grado de las zonas y el número medio de viajes por persona a nivel de distrito.
-Visualmente, la nube de puntos no presenta una tendencia clara, lo que sugiere una relación débil entre ambas variables. Este resultado se confirma mediante el análisis de correlación de Pearson.
+La Figura anterior muestra la relación entre la versatilidad de grado de
+las zonas y el número medio de viajes por persona a nivel de distrito.
+Visualmente, la nube de puntos no presenta una tendencia clara, lo que
+sugiere una relación débil entre ambas variables. Este resultado se
+confirma mediante el análisis de correlación de Pearson.
 
 ```{r correlacion-versatilidad-viajes}
 datos_cor <- versatilidad_df %>% 
@@ -1614,19 +1663,21 @@ ggplot(res_vuln,
 
 ```
 
-Con el análisis conjunto de la versatilidad nodal y la robustez estructural
-de la red agregada de Madrid podemos extraer tres conclusiones fundamentales
-sobre la arquitectura del sistema de transporte:
+Con el análisis conjunto de la versatilidad nodal y la robustez
+estructural de la red agregada de Madrid podemos extraer tres
+conclusiones fundamentales sobre la arquitectura del sistema de
+transporte:
 
 1.  Independencia entre Infraestructura y Demanda Individual. Tal como
     se observa en el gráfico de Versatilidad vs. Viajes, no existe una
     correlación clara entre la intensidad de uso (viajes medios por
     persona en el distrito) y la complejidad multimodal de las paradas.
 
-    -   La disposición de los puntos en bandas horizontales discretas 
-        revela que la red no es continua, sino jerárquica: la gran mayoría de 
-        nodos son unimodales (base del gráfico), mientras que la multimodalidad 
-        se da "a saltos" (agregando capas de Metro o BiciMAD).
+    -   La disposición de los puntos en bandas horizontales discretas
+        revela que la red no es continua, sino jerárquica: la gran
+        mayoría de nodos son unimodales (base del gráfico), mientras que
+        la multimodalidad se da "a saltos" (agregando capas de Metro o
+        BiciMAD).
 
     -   Homogeneidad de la demanda: El rango estrecho del eje X (1.95 -
         2.15 viajes) confirma que la movilidad individual es uniforme en
@@ -1663,11 +1714,13 @@ sobre la arquitectura del sistema de transporte:
     (bus, bici, parking) depende críticamente de la operatividad de las
     estaciones de metro centrales, que actúan como los "pegamentos" que
     unen las distintas capas de la red multicapa.
-    
-    
+
 # Dashboard Interactivo de la Red de Transporte
 
-En esta sección se presenta un **dashboard interactivo** que resume las métricas principales del análisis de redes multicapas de Madrid. Este dashboard permite una exploración visual e interactiva de los resultados obtenidos.
+En esta sección se presenta un **dashboard interactivo** que resume las
+métricas principales del análisis de redes multicapas de Madrid. Este
+dashboard permite una exploración visual e interactiva de los resultados
+obtenidos.
 
 ```{r dashboard-setup, include=FALSE}
 library(plotly)
@@ -1775,8 +1828,13 @@ fig_capas <- plot_ly(
 fig_capas
 ```
 
-**Análisis de la Distribución:** La preponderancia de la capa de Autobús (representando la mayor fracción de nodos activos) confirma su rol de "malla capilar" que cubre la totalidad del territorio urbano. Por el contrario, el Metro y BiciMAD muestran una participación más selectiva, concentrándose en corredores de alta capacidad y en la almendra central respectivamente, lo que refleja una jerarquía funcional clara entre modos de cobertura extensiva vs. intensiva.
-
+**Análisis de la Distribución:** La preponderancia de la capa de Autobús
+(representando la mayor fracción de nodos activos) confirma su rol de
+"malla capilar" que cubre la totalidad del territorio urbano. Por el
+contrario, el Metro y BiciMAD muestran una participación más selectiva,
+concentrándose en corredores de alta capacidad y en la almendra central
+respectivamente, lo que refleja una jerarquía funcional clara entre
+modos de cobertura extensiva vs. intensiva.
 
 ## Top 10 Zonas Más Versátiles
 
@@ -1826,7 +1884,13 @@ datatable(
   )
 ```
 
-**Interpretación del Ranking:** Las zonas que encabezan este ranking exhiben valores de versatilidad cercanos a 1 (máxima entropía), lo que indica que no dependen de un solo modo de transporte. Estos nodos actúan como verdaderas "rótulas" del sistema, permitiendo a los usuarios cambiar de red (ej. de Metro a BiciMAD) con fluidez. Su importancia es sistémica: son los puntos donde se "cosen" las diferentes capas de la ciudad.
+**Interpretación del Ranking:** Las zonas que encabezan este ranking
+exhiben valores de versatilidad cercanos a 1 (máxima entropía), lo que
+indica que no dependen de un solo modo de transporte. Estos nodos actúan
+como verdaderas "rótulas" del sistema, permitiendo a los usuarios
+cambiar de red (ej. de Metro a BiciMAD) con fluidez. Su importancia es
+sistémica: son los puntos donde se "cosen" las diferentes capas de la
+ciudad.
 
 ## Análisis de Centralidad por Capa
 
@@ -1881,11 +1945,16 @@ fig_grados <- plot_ly(
 fig_grados
 ```
 
-La comparación de grados evidencia una jerarquía funcional clara entre capas. El Autobús alcanza el mayor grado medio, indicando una red densa en conexiones locales. BiciMAD y Metro presentan grados máximos similares, pero con promedios más bajos, reflejando un diseño más selectivo y estructurado. Parking muestra la menor conectividad media, acorde con su rol puntual dentro del sistema. Estas diferencias confirman que cada modo optimiza su topología según su función urbana específica.
-
+La comparación de grados evidencia una jerarquía funcional clara entre
+capas. El Autobús alcanza el mayor grado medio, indicando una red densa
+en conexiones locales. BiciMAD y Metro presentan grados máximos
+similares, pero con promedios más bajos, reflejando un diseño más
+selectivo y estructurado. Parking muestra la menor conectividad media,
+acorde con su rol puntual dentro del sistema. Estas diferencias
+confirman que cada modo optimiza su topología según su función urbana
+específica.
 
 ## Densidad por Capa
-
 
 ```{r dashboard-centralidad-densidad, echo=FALSE, fig.height=5}
 # Datos de densidad
@@ -1925,9 +1994,14 @@ fig_densidad
 
 ```
 
-
-
-La capa de Autobús presenta la mayor densidad, reflejando su función de cobertura capilar y alta proximidad territorial. BiciMAD muestra una densidad intermedia, coherente con una red urbana distribuida pero no completamente conectada. Metro y Parking exhiben densidades bajas, propias de infraestructuras altamente especializadas, diseñadas para eficiencia y función específica más que para conectividad local. En conjunto, las bajas densidades son consistentes con la naturaleza espacial de las redes de transporte reales.
+La capa de Autobús presenta la mayor densidad, reflejando su función de
+cobertura capilar y alta proximidad territorial. BiciMAD muestra una
+densidad intermedia, coherente con una red urbana distribuida pero no
+completamente conectada. Metro y Parking exhiben densidades bajas,
+propias de infraestructuras altamente especializadas, diseñadas para
+eficiencia y función específica más que para conectividad local. En
+conjunto, las bajas densidades son consistentes con la naturaleza
+espacial de las redes de transporte reales.
 
 ## Robustez: Evolución de la Componente Gigante
 
@@ -1996,9 +2070,13 @@ fig_robustez <- plot_ly() %>%
 fig_robustez
 ```
 
-**Diagnóstico de Vulnerabilidad:** Este gráfico es la evidencia más clara de la naturaleza "Scale-Free" del transporte madrileño. La divergencia extrema entre la línea de "Fallo Aleatorio" (que decae suavemente) y la de "Ataque Dirigido" (que colapsa la red eliminando apenas el 15% de los nodos) alerta sobre la fragilidad crítica de los hubs centrales. El sistema es robusto ante accidentes dispersos, pero necesita protección prioritaria en sus nodos vertebradores.
-
-
+**Diagnóstico de Vulnerabilidad:** Este gráfico es la evidencia más
+clara de la naturaleza "Scale-Free" del transporte madrileño. La
+divergencia extrema entre la línea de "Fallo Aleatorio" (que decae
+suavemente) y la de "Ataque Dirigido" (que colapsa la red eliminando
+apenas el 15% de los nodos) alerta sobre la fragilidad crítica de los
+hubs centrales. El sistema es robusto ante accidentes dispersos, pero
+necesita protección prioritaria en sus nodos vertebradores.
 
 ## Distribución de Grados por Capa (Solo Nodos Activos)
 
@@ -2043,8 +2121,13 @@ fig_grados <- plot_ly(
 fig_grados
 ```
 
-**Heterogeneidad de Grados:** Los diagramas de violín revelan que, mientras la red de Autobuses tiene una distribución de grados más ancha y variable (reflejando zonas de muy alta y muy baja densidad), el Metro y el Parking muestran distribuciones más compactas. BiciMAD presenta un comportamiento bimodal interesante, sugiriendo una clara distinción entre estaciones periféricas del sistema y las estaciones centrales hiper-conectadas.
-
+**Heterogeneidad de Grados:** Los diagramas de violín revelan que,
+mientras la red de Autobuses tiene una distribución de grados más ancha
+y variable (reflejando zonas de muy alta y muy baja densidad), el Metro
+y el Parking muestran distribuciones más compactas. BiciMAD presenta un
+comportamiento bimodal interesante, sugiriendo una clara distinción
+entre estaciones periféricas del sistema y las estaciones centrales
+hiper-conectadas.
 
 ## Relación Versatilidad vs Viajes
 
@@ -2097,10 +2180,13 @@ fig_vers_viajes <- plot_ly(
 fig_vers_viajes
 ```
 
-**Desacoplamiento Estructural:** La nube de puntos dispersa confirma la hipótesis de que *infraestructura* y *demanda* no siempre van de la mano. Existen zonas con alta versatilidad (eje Y alto) pero moderada demanda de viajes (eje X medio), que son infraestructuras estratégicas de conectividad más que destinos finales de masas. Esto sugiere una planificación que busca garantizar opciones de movilidad en toda la ciudad, no solo donde hay más viajeros.
-
-
-
+**Desacoplamiento Estructural:** La nube de puntos dispersa confirma la
+hipótesis de que *infraestructura* y *demanda* no siempre van de la
+mano. Existen zonas con alta versatilidad (eje Y alto) pero moderada
+demanda de viajes (eje X medio), que son infraestructuras estratégicas
+de conectividad más que destinos finales de masas. Esto sugiere una
+planificación que busca garantizar opciones de movilidad en toda la
+ciudad, no solo donde hay más viajeros.
 
 ## Resumen Ejecutivo
 
@@ -2117,41 +2203,79 @@ cat('<li><strong>Topología Small-World:</strong> Clustering moderado (0.33) y a
 cat('</ul>')
 cat('</div>')
 ```
+
 ### Resumen Ejecutivo
 
-El dashboard interactivo desarrollado permite explorar visualmente la estructura de la red multicapa de transporte de Madrid, revelando patrones estructurales clave del sistema urbano.
+El dashboard interactivo desarrollado permite explorar visualmente la
+estructura de la red multicapa de transporte de Madrid, revelando
+patrones estructurales clave del sistema urbano.
 
 ### Hallazgos Principales
 
-**1. Alta Integración del Sistema**
-El análisis revela que la red de Madrid está altamente integrada, con un 98.1% de las 1,558 zonas de intercambio conectadas en una única componente gigante. Esta elevada conectividad (solo 30 zonas aisladas) demuestra la efectividad de la planificación del transporte madrileño, garantizando que prácticamente toda la ciudad sea accesible mediante el sistema multimodal.
+**1. Alta Integración del Sistema** El análisis revela que la red de
+Madrid está altamente integrada, con un 98.1% de las 1,558 zonas de
+intercambio conectadas en una única componente gigante. Esta elevada
+conectividad (solo 30 zonas aisladas) demuestra la efectividad de la
+planificación del transporte madrileño, garantizando que prácticamente
+toda la ciudad sea accesible mediante el sistema multimodal.
 
-**2. Identificación de Hubs Multimodales Críticos**
-El análisis de versatilidad identifica 10 zonas estratégicas (IDs: 164, 446, 101, 41, 283, 56, 239, 814, 71, 534) con valores de entropía superiores a 0.99, indicando una presencia equilibrada de múltiples modos de transporte. Estas zonas actúan como **verdaderos intercambiadores multimodales** que vertebran el sistema.
+**2. Identificación de Hubs Multimodales Críticos** El análisis de
+versatilidad identifica 10 zonas estratégicas (IDs: 164, 446, 101, 41,
+283, 56, 239, 814, 71, 534) con valores de entropía superiores a 0.99,
+indicando una presencia equilibrada de múltiples modos de transporte.
+Estas zonas actúan como **verdaderos intercambiadores multimodales** que
+vertebran el sistema.
 
-**3. Desacoplamiento entre Infraestructura y Demanda Individual**
-Un hallazgo fundamental es que la versatilidad de las zonas (complejidad multimodal) no correlaciona con la intensidad de viajes per cápita, que se mantiene uniforme en aproximadamente 2 viajes/día en todos los distritos (rango: 1.99-2.13). Esto demuestra que la ubicación de los intercambiadores responde a criterios estratégicos de planificación de red y accesibilidad global, no a una mayor demanda local.
+**3. Desacoplamiento entre Infraestructura y Demanda Individual** Un
+hallazgo fundamental es que la versatilidad de las zonas (complejidad
+multimodal) no correlaciona con la intensidad de viajes per cápita, que
+se mantiene uniforme en aproximadamente 2 viajes/día en todos los
+distritos (rango: 1.99-2.13). Esto demuestra que la ubicación de los
+intercambiadores responde a criterios estratégicos de planificación de
+red y accesibilidad global, no a una mayor demanda local.
 
-**4. Topología de Red de Mundo Pequeño**
-El coeficiente de clustering de 0.33 combinado con la alta conectividad global indica que Madrid presenta una topología de **red de mundo pequeño** (small-world network). Esta estructura, con alta conectividad local (clustering) y baja distancia global, es óptima para el transporte urbano, permitiendo desplazamientos eficientes con pocos transbordos.
+**4. Topología de Red de Mundo Pequeño** El coeficiente de clustering de
+0.33 combinado con la alta conectividad global indica que Madrid
+presenta una topología de **red de mundo pequeño** (small-world
+network). Esta estructura, con alta conectividad local (clustering) y
+baja distancia global, es óptima para el transporte urbano, permitiendo
+desplazamientos eficientes con pocos transbordos.
 
-**5. Densidad Apropiada para Redes Espaciales**
-La baja densidad observada (0.29%) es coherente y apropiada para redes de transporte urbano basadas en proximidad espacial. A diferencia de redes abstractas, las redes de transporte solo conectan nodos geográficamente próximos, resultando naturalmente en bajas densidades que no comprometen la funcionalidad del sistema.
+**5. Densidad Apropiada para Redes Espaciales** La baja densidad
+observada (0.29%) es coherente y apropiada para redes de transporte
+urbano basadas en proximidad espacial. A diferencia de redes abstractas,
+las redes de transporte solo conectan nodos geográficamente próximos,
+resultando naturalmente en bajas densidades que no comprometen la
+funcionalidad del sistema.
 
 ### Implicaciones para la Gestión del Sistema
 
-1. **Protección de Nodos Críticos**: Las 10 zonas de mayor versatilidad identificadas deben considerarse críticas para la resiliencia del sistema y recibir atención prioritaria en mantenimiento y gestión de incidencias.
+1.  **Protección de Nodos Críticos**: Las 10 zonas de mayor versatilidad
+    identificadas deben considerarse críticas para la resiliencia del
+    sistema y recibir atención prioritaria en mantenimiento y gestión de
+    incidencias.
 
-2. **Planificación de Capacidad Uniforme**: La homogeneidad en viajes per cápita sugiere que las inversiones en capacidad deben distribuirse equilibradamente entre distritos, sin concentrarse solo en intercambiadores.
+2.  **Planificación de Capacidad Uniforme**: La homogeneidad en viajes
+    per cápita sugiere que las inversiones en capacidad deben
+    distribuirse equilibradamente entre distritos, sin concentrarse solo
+    en intercambiadores.
 
-3. **Valor de la Multimodalidad**: La alta versatilidad de ciertas zonas confirma el valor estratégico de invertir en intercambiadores multimodales que faciliten transbordos fluidos entre modos.
+3.  **Valor de la Multimodalidad**: La alta versatilidad de ciertas
+    zonas confirma el valor estratégico de invertir en intercambiadores
+    multimodales que faciliten transbordos fluidos entre modos.
 
 ### Nota sobre Metodología del Dashboard
 
-El dashboard implementado utiliza visualizaciones interactivas (plotly, DT) que permiten explorar dinámicamente los datos. Las métricas de centralidad, versatilidad y robustez se calculan sobre la red agregada multicapa, proporcionando una visión holística del sistema que no sería visible analizando cada modo de transporte por separado.
+El dashboard implementado utiliza visualizaciones interactivas (plotly,
+DT) que permiten explorar dinámicamente los datos. Las métricas de
+centralidad, versatilidad y robustez se calculan sobre la red agregada
+multicapa, proporcionando una visión holística del sistema que no sería
+visible analizando cada modo de transporte por separado.
 
-La integración de datos de movilidad (viajes por distrito) con métricas estructurales de red permite conectar la topología de la infraestructura con los patrones reales de comportamiento de los usuarios, ofreciendo insights valiosos para la planificación urbana.
-
+La integración de datos de movilidad (viajes por distrito) con métricas
+estructurales de red permite conectar la topología de la infraestructura
+con los patrones reales de comportamiento de los usuarios, ofreciendo
+insights valiosos para la planificación urbana.
 
 # Conclusiones
 
@@ -2186,14 +2310,49 @@ en los datos reales de Madrid, tal y como se pedía en el enunciado.
 
 ## Implementación Técnica y Uso de muxViz
 
-Para la realización de este estudio, la librería `muxViz` en R ha sido la herramienta fundamental para el análisis matemático. El proceso se ha estructurado en fases clave:
+Para la realización de este estudio, la librería `muxViz` en R ha sido
+la herramienta fundamental para el análisis matemático. El proceso se ha
+estructurado en fases clave:
 
-1.  **Modelado de la Red**: Hemos seguido la lógica matemática de `muxViz` para construir la Matriz Supra-Adyacente. Dado el tamaño de la red, hemos implementado esta construcción utilizando matrices dispersas optimizadas (`Matrix` package) en lugar de la función original `BuildSupraAdjacencyMatrixFromExtendedEdgelist()`, garantizando así la estabilidad y evitando desbordamientos de memoria, manteniendo intacta la definición del tensor supra-adyacente.
+1.  **Modelado de la Red**: Hemos seguido la lógica matemática de
+    `muxViz` para construir la Matriz Supra-Adyacente. Dado el tamaño de
+    la red, hemos implementado esta construcción utilizando matrices
+    dispersas optimizadas (`Matrix` package) en lugar de la función
+    original `BuildSupraAdjacencyMatrixFromExtendedEdgelist()`,
+    garantizando así la estabilidad y evitando desbordamientos de
+    memoria, manteniendo intacta la definición del tensor
+    supra-adyacente.
 
-2.  **Análisis de Métricas**: Para cuantificar la relevancia real de las paradas, hemos calculado:
-    *   **Grado Multicapa**: Mediante `GetMultiDegree()`, obteniendo la conectividad total en el supra-grafo.
-    *   **PageRank Multicapa**: Para este cálculo, hemos aplicado el algoritmo de PageRank directamente sobre el supra-grafo construido. Esta implementación es matemáticamente equivalente a `GetMultiPageRankCentrality()` pero se ejecuta mediante el motor optimizado en C++ de `igraph`, lo que asegura precisión numérica y velocidad de ejecución. Esta métrica es superior a la centralidad clásica, ya que identifica los nodos que son importantes por su capacidad de conectar flujos complejos a través de diferentes modos.
+2.  **Análisis de Métricas**: Para cuantificar la relevancia real de las
+    paradas, hemos calculado:
 
-3.  **Visualización**: Aunque `muxViz` proporciona funciones nativas para la visualización de redes multicapa, en este trabajo no se ha utilizado directamente la función original `plot_multiplex3D()`. Esto se debe a la existencia de errores de ejecución y problemas de compatibilidad con versiones recientes de R, documentados en los *issues* abiertos del repositorio oficial de `muxViz` en GitHub, que impedían su correcto funcionamiento.
+    -   **Grado Multicapa**: Mediante `GetMultiDegree()`, obteniendo la
+        conectividad total en el supra-grafo.
+    -   **PageRank Multicapa**: Para este cálculo, hemos aplicado el
+        algoritmo de PageRank directamente sobre el supra-grafo
+        construido. Esta implementación es matemáticamente equivalente a
+        `GetMultiPageRankCentrality()` pero se ejecuta mediante el motor
+        optimizado en C++ de `igraph`, lo que asegura precisión numérica
+        y velocidad de ejecución. Esta métrica es superior a la
+        centralidad clásica, ya que identifica los nodos que son
+        importantes por su capacidad de conectar flujos complejos a
+        través de diferentes modos.
 
-Por este motivo, se ha empleado una **versión modificada de dicha función**, adaptada a partir del código original de `muxViz`, manteniendo su lógica de representación tridimensional y la filosofía del modelo multicapa. Esta adaptación permite generar una visualización 3D coherente en la que se aprecia claramente la estructura en capas (Bus, Metro, BiciMAD y Parking) y su alineación espacial, garantizando al mismo tiempo la estabilidad y reproducibilidad del análisis. Adicionalmente, la visualización se ha complementado con un dashboard interactivo en `plotly` para la exploración dinámica de las métricas multicapa.
+3.  **Visualización**: Aunque `muxViz` proporciona funciones nativas
+    para la visualización de redes multicapa, en este trabajo no se ha
+    utilizado directamente la función original `plot_multiplex3D()`.
+    Esto se debe a la existencia de errores de ejecución y problemas de
+    compatibilidad con versiones recientes de R, documentados en los
+    *issues* abiertos del repositorio oficial de `muxViz` en GitHub, que
+    impedían su correcto funcionamiento.
+
+Por este motivo, se ha empleado una **versión modificada de dicha
+función**, adaptada a partir del código original de `muxViz`,
+manteniendo su lógica de representación tridimensional y la filosofía
+del modelo multicapa. Esta adaptación permite generar una visualización
+3D coherente en la que se aprecia claramente la estructura en capas
+(Bus, Metro, BiciMAD y Parking) y su alineación espacial, garantizando
+al mismo tiempo la estabilidad y reproducibilidad del análisis.
+Adicionalmente, la visualización se ha complementado con un dashboard
+interactivo en `plotly` para la exploración dinámica de las métricas
+multicapa.
