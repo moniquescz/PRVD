@@ -1274,20 +1274,33 @@ centralidad_por_capa <- do.call(rbind, centralidad_lista)
 kable(head(centralidad_por_capa), caption = "Centralidad intra-capa (calculada con igraph)")
 ```
 
-Distribución del grado por modo (intra-capa):
+Distribución del grado y fuerza por modo (intra-capa):
 
-```{r distribucion-grado}
-par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))
+```{r distribucion-grado, fig.height=10}
+par(mfrow = c(4, 2), mar = c(3, 4, 3, 1)) # Rejilla 4x2: Izq=Grado, Der=Fuerza
 for (m in modos) {
   datos_sub <- centralidad_por_capa[centralidad_por_capa$modo == m, ]
+  
+  # 1. Histograma de Grado
   hist(datos_sub$degree, 
        breaks = 30, 
        col = adjustcolor(colores[m], alpha.f = 0.6),
        border = "white",
-       main = paste("MODO:", toupper(m)),
-       xlab = "Grado Intra-capa", ylab = "Frecuencia")
+       main = paste(toupper(m), "- GRADO"),
+       xlab = "Grado (Nº Vecinos)", ylab = "Frecuencia")
+       
+  # 2. Histograma de Fuerza (Strength)
+  hist(datos_sub$strength, 
+       breaks = 30, 
+       col = adjustcolor(colores[m], alpha.f = 0.8), # Un poco más oscuro
+       border = "white",
+       main = paste(toupper(m), "- FUERZA"),
+       xlab = "Fuerza (Suma de Pesos)", ylab = "Frecuencia")
 }
 ```
+
+La visualización comparada de la distribución del **Grado** (número de conexiones) y la **Fuerza** (suma de pesos ponderados por distancia) revela la huella topológica de cada modo. Se observa un contraste radical entre la red de **Autobús (rojo)**, que presenta una distribución aproximadamente normal (campana de Gauss) centrada en grados intermedios, lo que confirma su función de cobertura capilar global, frente a las redes de **Metro (azul)** y **BiciMAD (verde)**, dominadas por una gran barra en grado cero (zonas sin servicio) y una cola de grados altos. Esto último caracteriza a redes selectivas o jerárquicas, donde pocas infraestructuras conectan zonas estratégicas pero dejan gran parte del territorio sin cobertura directa en esa capa específica.
+
 
 ## Versatilidad y Ranking Multicapa (con muxViz)
 
