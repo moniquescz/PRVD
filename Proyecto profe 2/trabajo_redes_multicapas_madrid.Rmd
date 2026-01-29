@@ -1133,9 +1133,7 @@ clave.
 
 # Centralidad y versatilidad de las zonas
 
-## Medidas de centralidad por capa
-
-Calculamos grado y fuerza (suma de pesos) para cada zona en cada modo.
+## Construcción del Modelo Multicapa (Supra-Matriz)
 
 ```{r muxviz-prep-data, message=FALSE, warning=FALSE}
 # --- 1. PREPARACIÓN DE DATOS PARA MUXVIZ ---
@@ -1227,6 +1225,10 @@ SupraAdj <- as_adjacency_matrix(g_supra_temp, attr = "w", sparse = TRUE)
 rm(edges_supra, edges_muxviz_intra, edges_muxviz_inter, g_supra_temp)
 gc()
 ```
+
+## Medidas de centralidad por capa
+
+Calculamos grado y fuerza (suma de pesos) para cada zona en cada modo.
 
 ```{r muxviz-metrics, message=FALSE, warning=FALSE}
 # --- 3. CÁLCULO DE MÉTRICAS MULTICAPA (MUXVIZ) ---
